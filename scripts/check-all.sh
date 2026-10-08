@@ -20,6 +20,13 @@ step cargo fmt --all --check
 step cargo clippy --workspace --all-targets --locked -- -D warnings
 step cargo test --workspace --locked
 step cargo deny --locked check
+
+# The app is a separate Cargo project, outside the workspace.
+app=app/src-tauri/Cargo.toml
+step cargo fmt --manifest-path "$app" --check
+step cargo clippy --manifest-path "$app" --all-targets --locked -- -D warnings
+step cargo deny --manifest-path "$app" --locked check
+
 step shellcheck scripts/*.sh .githooks/*
 step scripts/check-no-network.sh
 step scripts/test-check-no-network.sh

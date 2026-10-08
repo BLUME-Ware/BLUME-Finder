@@ -15,6 +15,7 @@ and its consequences. A record is never rewritten once accepted; a new record su
 | [0008](0008-free-distribution-and-portability.md) | Free distribution, portable code | Accepted |
 | [0009](0009-versioning.md) | Semantic versioning, first release 0.1.0 | Accepted |
 | [0010](0010-quality-gates.md) | Single set of quality gates | Accepted |
+| [0011](0011-dependency-audit-exceptions.md) | Exceptions to the dependency audit | Accepted |
 
 New records follow the same structure:
 

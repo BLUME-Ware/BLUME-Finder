@@ -10,10 +10,18 @@ targets = [
 
 [advisories]
 yanked = "deny"
+# The engine and the app share this file, so an exception may concern only one of them.
+unused-ignored-advisory = "allow"
+ignore = [
+  { id = "RUSTSEC-2024-0370", reason = "proc-macro-error is unmaintained, not vulnerable. It is a build-time macro crate pulled in only by the Linux GTK stack of Tauri, with no replacement available on our side." },
+  { id = "RUSTSEC-2026-0192", reason = "ttf-parser is unmaintained, not vulnerable. lopdf 0.42 requires it only to embed fonts when creating a PDF (FontData), a path the engine never takes: it only reads PDFs. lopdf 0.42 is needed for the RUSTSEC-2026-0187 fix." },
+]
 
 [licenses]
 unused-allowed-license = "allow"
-allow = ["MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unicode-3.0", "Zlib"]
+# MPL-2.0 is file-level copyleft: using the unmodified crates Tauri depends on is compatible
+# with distributing an MIT application.
+allow = ["MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception", "BSD-2-Clause", "BSD-3-Clause", "ISC", "MPL-2.0", "Unicode-3.0", "Zlib"]
 
 [bans]
 multiple-versions = "allow"

@@ -46,17 +46,22 @@ fake_crate() {
   touch "fake/$1/src/lib.rs"
   printf '[package]\nname = "%s"\nversion = "0.1.0"\nedition = "2021"\n' "$1" > "fake/$1/Cargo.toml"
 }
-export -f fake_crate
+
+# The app depends on the engine by path, so both lockfiles have to follow.
+add_engine_dependency() {
+  fake_crate "$1"
+  printf '%s = { path = "../fake/%s" }\n' "$1" "$1" >> core/Cargo.toml
+  cargo update --offline --quiet --package blume-finder-core
+  if [[ -f app/src-tauri/Cargo.toml ]]; then
+    cargo update --offline --quiet --package blume-finder-core --manifest-path app/src-tauri/Cargo.toml
+  fi
+}
 
 expect "networking crate in the engine is rejected" "Cargo.toml: networking crate in dependency tree: reqwest" '
-  fake_crate reqwest
-  printf "reqwest = { path = \"../fake/reqwest\" }\n" >> core/Cargo.toml
-  cargo generate-lockfile --offline --quiet'
+  add_engine_dependency reqwest'
 
 expect "async runtime in the engine is rejected" "the engine must not depend on tokio" '
-  fake_crate tokio
-  printf "tokio = { path = \"../fake/tokio\" }\n" >> core/Cargo.toml
-  cargo generate-lockfile --offline --quiet'
+  add_engine_dependency tokio'
 
 expect "networking crate in the app is rejected" "app/src-tauri/Cargo.toml: networking crate in dependency tree: hyper" '
   fake_crate hyper

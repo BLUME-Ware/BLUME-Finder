@@ -3,5 +3,21 @@ name = "blume-finder-core"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
+description = "Moteur local de recherche dans le contenu des fichiers. Rien ne quitte l'ordinateur."
+
+[lib]
+name = "blume_finder_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "blume"
+path = "src/bin/blume.rs"
 
 [dependencies]
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+walkdir = "2"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+pdf-extract = "0.12"
+rust-stemmers = "1.2"

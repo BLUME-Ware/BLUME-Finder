@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissions minimales : l'interface peut appeler les commandes de Blume Finder et recevoir la progression. Aucune permission réseau, aucun accès direct au système de fichiers depuis la page.",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}
