@@ -417,15 +417,16 @@ fn home_dir() -> Option<PathBuf> {
         .map(PathBuf::from)
 }
 
-/// Dossiers jamais parcourus : cachés, applications, dépendances, caches système.
+/// Entries never read: hidden files and folders, and the folders of applications, dependencies
+/// and system caches.
 fn is_excluded(e: &DirEntry, home: Option<&Path>) -> bool {
+    if e.file_name().to_string_lossy().starts_with('.') {
+        return true;
+    }
     if !e.file_type().is_dir() {
         return false;
     }
     let name = e.file_name().to_string_lossy().to_lowercase();
-    if name.starts_with('.') {
-        return true;
-    }
     if matches!(
         name.as_str(),
         "node_modules"
@@ -464,6 +465,19 @@ fn is_sensitive_name(name: &str) -> bool {
         || n.ends_with(".keychain")
         || n.ends_with(".keychain-db")
         || n.ends_with(".gpg")
+        // Exports that keep credentials, passwords or recovery codes in plain text, under an
+        // extension whose content would otherwise be read.
+        || n == "credentials.csv"
+        || n.ends_with("_credentials.csv")
+        || n == "accesskeys.csv"
+        || n.ends_with("_accesskeys.csv")
+        || n == "rootkey.csv"
+        || n == "passwords.csv"
+        || n.ends_with(" passwords.csv")
+        || n == "logins.csv"
+        || n.starts_with("bitwarden_export")
+        || n.contains("recovery-codes")
+        || n.contains("backup-codes")
 }
 
 #[cfg(test)]
@@ -507,5 +521,26 @@ mod tests {
         assert!(is_sensitive_name(".env.local"));
         assert!(is_sensitive_name("server.PEM"));
         assert!(!is_sensitive_name("environnement.txt"));
+    }
+
+    #[test]
+    fn plain_text_secret_exports_are_sensitive() {
+        for name in [
+            "credentials.csv",
+            "alice_credentials.csv",
+            "accessKeys.csv",
+            "alice_accessKeys.csv",
+            "rootkey.csv",
+            "Passwords.csv",
+            "Chrome Passwords.csv",
+            "logins.csv",
+            "bitwarden_export_20261008.csv",
+            "github-recovery-codes.txt",
+            "Backup-codes-alice.txt",
+        ] {
+            assert!(is_sensitive_name(name), "{name}");
+        }
+        assert!(!is_sensitive_name("budget.csv"));
+        assert!(!is_sensitive_name("password policy.pdf"));
     }
 }

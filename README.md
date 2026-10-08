@@ -16,7 +16,7 @@ Supported formats: plain text, Markdown, CSV, HTML, PDF with a text layer, Word,
 
 - Read-only. Files are never moved, renamed, edited or deleted. Removing a folder from the index leaves its files untouched.
 - Local processing. The search engine (`core/`) depends on no network library. The app requests no network permission, its content security policy blocks external connections, and it ships no HTTP client.
-- Excluded by default: key and secret files (`.env`, `.pem`, `.key`, keychains, password databases), hidden folders, applications and dependency folders.
+- Excluded by default: hidden files and folders, key and secret files (`.env`, `.pem`, `.key`, keychains, password databases), credential and password exports, two-factor recovery codes, applications and dependency folders.
 - The index holds the text of the indexed files. It is stored locally, with owner-only permissions on Mac and Linux. Deleting it removes everything the app knows.
 
 These points can be checked in the code:
@@ -87,7 +87,7 @@ Formats pris en charge : texte brut, Markdown, CSV, HTML, PDF avec couche texte,
 
 - Lecture seule. Aucun fichier n'est déplacé, renommé, modifié ou supprimé. Retirer un dossier de l'index ne touche pas à ses fichiers.
 - Traitement local. Le moteur de recherche (`core/`) ne dépend d'aucune bibliothèque réseau. L'application ne demande aucune permission réseau, sa politique de sécurité de contenu bloque les connexions extérieures, et elle n'embarque aucun client HTTP.
-- Exclus par défaut : fichiers de clés et de secrets (`.env`, `.pem`, `.key`, trousseaux, bases de mots de passe), dossiers cachés, applications et dossiers de dépendances.
+- Exclus par défaut : fichiers et dossiers cachés, fichiers de clés et de secrets (`.env`, `.pem`, `.key`, trousseaux, bases de mots de passe), exports d'identifiants et de mots de passe, codes de récupération de double authentification, applications et dossiers de dépendances.
 - L'index contient le texte des fichiers indexés. Il est stocké localement, avec des droits réservés au propriétaire sur Mac et Linux. Le supprimer efface tout ce que l'application connaît.
 
 Ces points sont vérifiables dans le code, avec les trois éléments listés dans la section anglaise : les dépendances du moteur, la politique de sécurité de contenu et les permissions accordées à l'interface.
