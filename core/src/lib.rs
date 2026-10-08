@@ -81,6 +81,7 @@ impl Index {
         conn.execute_batch(
             "PRAGMA journal_mode=WAL;
              PRAGMA synchronous=NORMAL;
+             PRAGMA secure_delete=ON;
              CREATE TABLE IF NOT EXISTS files(
                  id INTEGER PRIMARY KEY,
                  path TEXT NOT NULL UNIQUE,
@@ -97,6 +98,16 @@ impl Index {
                  name, stems, tokenize='unicode61 remove_diacritics 2'
              );",
         )?;
+        // FTS5 ignores the pragma above: without its own option, removed terms stay in its
+        // segments until they happen to be merged. Written once, as it is stored in the table.
+        let fts_secure: bool = conn.query_row(
+            "SELECT EXISTS(SELECT 1 FROM fts_config WHERE k='secure-delete' AND v=1)",
+            [],
+            |r| r.get(0),
+        )?;
+        if !fts_secure {
+            conn.execute("INSERT INTO fts(fts, rank) VALUES('secure-delete', 1)", [])?;
+        }
         Ok(Index {
             conn,
             lang: text::Lang::new(),
@@ -262,6 +273,7 @@ impl Index {
             }
             Ok(())
         })?;
+        self.erase_journal()?;
 
         rep.millis = t0.elapsed().as_millis() as u64;
         Ok(rep)
@@ -282,6 +294,15 @@ impl Index {
                 Err(e)
             }
         }
+    }
+
+    /// The journal keeps copies of the pages that held removed text: they are copied back into
+    /// the index, already erased there, and the journal is emptied. A connection reading at
+    /// that moment prevents it; the next call catches up.
+    fn erase_journal(&self) -> Result<()> {
+        self.conn
+            .query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |_| Ok(()))?;
+        Ok(())
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -391,7 +412,7 @@ impl Index {
 
     /// Retire un dossier de l'index. Les fichiers eux-mêmes ne sont pas touchés.
     pub fn forget_root(&mut self, root: &str) -> Result<u64> {
-        self.write_transaction(|index| {
+        let removed = self.write_transaction(|index| {
             index.conn.execute(
                 "DELETE FROM fts WHERE rowid IN (SELECT id FROM files WHERE root=?1)",
                 [root],
@@ -403,7 +424,9 @@ impl Index {
             Ok(index
                 .conn
                 .execute("DELETE FROM files WHERE root=?1", [root])? as u64)
-        })
+        })?;
+        self.erase_journal()?;
+        Ok(removed)
     }
 
     /// Vrai si ce chemin figure dans l'index (sert à n'ouvrir que des fichiers connus).
