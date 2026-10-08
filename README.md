@@ -35,7 +35,6 @@ Requirements: [Rust](https://rustup.rs) and [Node.js](https://nodejs.org). On Ma
 ```
 cd app
 npm install
-npm run icons      # generates the app icons from app-icon.png
 npm run dev        # opens the app
 npm run build      # builds an installable app
 ```
