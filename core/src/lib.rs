@@ -108,24 +108,6 @@ impl Index {
     pub fn index_folder(
         &mut self,
         root: &Path,
-        on_progress: impl FnMut(&Progress),
-    ) -> Result<Report> {
-        self.conn.execute_batch("BEGIN")?;
-        match self.index_inner(root, on_progress) {
-            Ok(report) => {
-                self.conn.execute_batch("COMMIT")?;
-                Ok(report)
-            }
-            Err(e) => {
-                let _ = self.conn.execute_batch("ROLLBACK");
-                Err(e)
-            }
-        }
-    }
-
-    fn index_inner(
-        &mut self,
-        root: &Path,
         mut on_progress: impl FnMut(&Progress),
     ) -> Result<Report> {
         let t0 = Instant::now();
@@ -154,7 +136,6 @@ impl Index {
         let home = home_dir();
         let mut seen: HashSet<String> = HashSet::new();
         let mut rep = Report::default();
-        let mut batch = 0u32;
 
         let walker = WalkDir::new(&root)
             .follow_links(false)
@@ -223,36 +204,56 @@ impl Index {
                 rep.name_only += 1;
             }
 
-            self.store(
-                &path_s,
-                &name,
-                &ext,
-                size,
-                mtime,
-                status,
-                &root_s,
-                body.as_deref(),
-            )?;
+            // One transaction per file: the write lock is never held while the next file is
+            // read, so removing a folder during indexing does not have to wait for a batch.
+            self.write_transaction(|index| {
+                index.store(
+                    &path_s,
+                    &name,
+                    &ext,
+                    size,
+                    mtime,
+                    status,
+                    &root_s,
+                    body.as_deref(),
+                )
+            })?;
             rep.indexed += 1;
-            batch += 1;
-            if batch >= 200 {
-                self.conn.execute_batch("COMMIT; BEGIN")?;
-                batch = 0;
-            }
         }
 
-        for (path, (id, _, _)) in &known {
-            if !seen.contains(path) {
-                self.conn.execute("DELETE FROM fts WHERE rowid=?1", [id])?;
-                self.conn
-                    .execute("DELETE FROM texts WHERE file_id=?1", [id])?;
-                self.conn.execute("DELETE FROM files WHERE id=?1", [id])?;
-                rep.removed += 1;
+        self.write_transaction(|index| {
+            for (path, (id, _, _)) in &known {
+                if !seen.contains(path) {
+                    index.conn.execute("DELETE FROM fts WHERE rowid=?1", [id])?;
+                    index
+                        .conn
+                        .execute("DELETE FROM texts WHERE file_id=?1", [id])?;
+                    index.conn.execute("DELETE FROM files WHERE id=?1", [id])?;
+                    rep.removed += 1;
+                }
             }
-        }
+            Ok(())
+        })?;
 
         rep.millis = t0.elapsed().as_millis() as u64;
         Ok(rep)
+    }
+
+    /// Runs `f` in a transaction of its own. `BEGIN IMMEDIATE` takes the write lock up front:
+    /// a transaction that reads before it writes fails at once, without waiting, when another
+    /// connection holds the lock.
+    fn write_transaction<T>(&self, f: impl FnOnce(&Self) -> Result<T>) -> Result<T> {
+        self.conn.execute_batch("BEGIN IMMEDIATE")?;
+        match f(self) {
+            Ok(value) => {
+                self.conn.execute_batch("COMMIT")?;
+                Ok(value)
+            }
+            Err(e) => {
+                let _ = self.conn.execute_batch("ROLLBACK");
+                Err(e)
+            }
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -362,30 +363,19 @@ impl Index {
 
     /// Retire un dossier de l'index. Les fichiers eux-mêmes ne sont pas touchés.
     pub fn forget_root(&mut self, root: &str) -> Result<u64> {
-        self.conn.execute_batch("BEGIN")?;
-        let res: Result<u64> = (|| {
-            self.conn.execute(
+        self.write_transaction(|index| {
+            index.conn.execute(
                 "DELETE FROM fts WHERE rowid IN (SELECT id FROM files WHERE root=?1)",
                 [root],
             )?;
-            self.conn.execute(
+            index.conn.execute(
                 "DELETE FROM texts WHERE file_id IN (SELECT id FROM files WHERE root=?1)",
                 [root],
             )?;
-            Ok(self
+            Ok(index
                 .conn
                 .execute("DELETE FROM files WHERE root=?1", [root])? as u64)
-        })();
-        match res {
-            Ok(n) => {
-                self.conn.execute_batch("COMMIT")?;
-                Ok(n)
-            }
-            Err(e) => {
-                let _ = self.conn.execute_batch("ROLLBACK");
-                Err(e)
-            }
-        }
+        })
     }
 
     /// Vrai si ce chemin figure dans l'index (sert à n'ouvrir que des fichiers connus).
