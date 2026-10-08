@@ -114,6 +114,34 @@ impl Index {
         let root = root.canonicalize()?;
         let root_s = root.to_string_lossy().to_string();
 
+        // Indexed folders never overlap: each file belongs to one of them only. A folder inside
+        // an indexed one is already covered; an indexed folder inside this one becomes part of
+        // it, so that its files count as known and are not read again.
+        let mut nested = Vec::new();
+        for (other, _) in self.roots()? {
+            if other == root_s {
+                continue;
+            }
+            if root.starts_with(&other) {
+                return Err(
+                    format!("{root_s} is already part of the indexed folder {other}").into(),
+                );
+            }
+            if Path::new(&other).starts_with(&root) {
+                nested.push(other);
+            }
+        }
+        if !nested.is_empty() {
+            self.write_transaction(|index| {
+                for other in &nested {
+                    index
+                        .conn
+                        .execute("UPDATE files SET root=?1 WHERE root=?2", [&root_s, other])?;
+                }
+                Ok(())
+            })?;
+        }
+
         let mut known: HashMap<String, (i64, i64, i64)> = HashMap::new();
         {
             let mut st = self

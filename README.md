@@ -8,7 +8,7 @@ Blume Finder runs locally and reads files without ever modifying them. It indexe
 
 ## How it works
 
-The folders to index are chosen in the app. Each file is read once, its text is extracted, and the result is stored in a local index (a single SQLite file in the application data folder). A search matches the words of the query, tolerating plurals, accents and partial words, against both file names and file contents. Results show the matching passage with the words highlighted. Folders are re-read at launch, and only files that changed since the last run are processed again.
+The folders to index are chosen in the app. A folder inside an indexed folder is already covered, and adding a parent folder takes over the indexed folders it contains. Each file is read once, its text is extracted, and the result is stored in a local index (a single SQLite file in the application data folder). A search matches the words of the query, tolerating plurals, accents and partial words, against both file names and file contents. Results show the matching passage with the words highlighted. Folders are re-read at launch, and only files that changed since the last run are processed again.
 
 Supported formats: plain text, Markdown, CSV, HTML, PDF with a text layer, Word, PowerPoint, Excel and OpenDocument. Scans and images are matched by file name only, as there is no OCR yet.
 
@@ -79,7 +79,7 @@ Blume Finder fonctionne en local et lit les fichiers sans jamais les modifier. I
 
 ## Fonctionnement
 
-Les dossiers à indexer sont choisis dans l'application. Chaque fichier est lu une fois, son texte est extrait, et le résultat est enregistré dans un index local (un seul fichier SQLite dans le dossier de données de l'application). Une recherche compare les mots de la requête, en tolérant pluriels, accents et mots partiels, aux noms de fichiers et à leur contenu. Les résultats montrent le passage correspondant, avec les mots surlignés. Les dossiers sont relus au lancement, et seuls les fichiers modifiés depuis le dernier passage sont retraités.
+Les dossiers à indexer sont choisis dans l'application. Un dossier situé dans un dossier indexé est déjà couvert, et ajouter un dossier parent reprend les dossiers indexés qu'il contient. Chaque fichier est lu une fois, son texte est extrait, et le résultat est enregistré dans un index local (un seul fichier SQLite dans le dossier de données de l'application). Une recherche compare les mots de la requête, en tolérant pluriels, accents et mots partiels, aux noms de fichiers et à leur contenu. Les résultats montrent le passage correspondant, avec les mots surlignés. Les dossiers sont relus au lancement, et seuls les fichiers modifiés depuis le dernier passage sont retraités.
 
 Formats pris en charge : texte brut, Markdown, CSV, HTML, PDF avec couche texte, Word, PowerPoint, Excel et OpenDocument. Les scans et les images ne sont trouvés que par leur nom, faute d'OCR pour le moment.
 

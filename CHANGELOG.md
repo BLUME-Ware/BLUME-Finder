@@ -6,3 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Fixed
+
+- Hidden files and plain-text secret exports, such as `credentials.csv`, are no longer indexed.
+- Removing a folder while another one is being indexed no longer fails with "database is locked".
+- An indexed folder and its subfolders no longer overlap: adding a subfolder of an indexed folder
+  is refused, and adding a parent folder takes over the indexed folders it contains.
