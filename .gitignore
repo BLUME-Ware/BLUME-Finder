@@ -1,0 +1,11 @@
+/target/
+/app/src-tauri/target/
+/app/src-tauri/gen/
+node_modules/
+dist/
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+.claude/settings.local.json
+CLAUDE.md

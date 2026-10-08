@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if git diff --cached --name-only | grep -qx 'CLAUDE.md'; then
+  echo "pre-commit: CLAUDE.md is staged; it must never be committed (git restore --staged CLAUDE.md)" >&2
+  exit 1
+fi
+
+exec "$(git rev-parse --show-toplevel)/scripts/check-all.sh"
