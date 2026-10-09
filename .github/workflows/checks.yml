@@ -15,6 +15,9 @@ jobs:
     steps:
       # Pinned to a commit so a moved tag cannot change what runs.
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
       - run: brew install shellcheck
       - run: cargo install --locked cargo-deny@0.20.2
       - run: scripts/check-all.sh
@@ -40,4 +43,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libsoup-3.0-dev librsvg2-dev
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - run: npm --prefix app ci --ignore-scripts --no-audit --no-fund
+      - run: npm --prefix app run web:build
       - run: cargo clippy --manifest-path app/src-tauri/Cargo.toml --all-targets --locked -- -D warnings

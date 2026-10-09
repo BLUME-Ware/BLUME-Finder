@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The interface is rebuilt with Svelte and TypeScript in a single centered view, and follows
+  the system language, in English or French.
 - The `blume` command-line tool now writes its messages in English.
 
 ### Fixed

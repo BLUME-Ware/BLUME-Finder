@@ -4,10 +4,12 @@
   "version": "0.1.0",
   "identifier": "fr.blumeware.finder",
   "build": {
-    "frontendDist": "../src"
+    "beforeDevCommand": "npm run web:dev",
+    "devUrl": "http://localhost:5173",
+    "beforeBuildCommand": "npm run web:build",
+    "frontendDist": "../dist"
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
         "label": "main",
