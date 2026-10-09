@@ -14,7 +14,6 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde::Serialize;
 use std::{
     collections::{HashMap, HashSet},
-    fs,
     path::{Path, PathBuf},
     time::{Instant, UNIX_EPOCH},
 };
@@ -86,7 +85,7 @@ impl Index {
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            let _ = fs::set_permissions(path, fs::Permissions::from_mode(0o600));
+            let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
         }
         conn.execute_batch(
             "PRAGMA journal_mode=WAL;
@@ -546,6 +545,7 @@ fn is_sensitive_name(name: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     #[test]
     fn index_can_move_between_threads() {
