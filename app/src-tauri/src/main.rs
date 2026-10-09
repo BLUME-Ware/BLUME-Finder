@@ -1,6 +1,6 @@
-// Blume Finder : couche Tauri.
-// Cette couche ne fait que relier l'interface au moteur local (dossier `core`).
-// Elle n'ouvre aucune connexion réseau, ne modifie, ne déplace et ne supprime aucun fichier.
+// Blume Finder: Tauri layer.
+// This layer only connects the interface to the local engine (`core` folder).
+// It opens no network connection and does not modify, move or delete any file.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use blume_finder_core::{Hit, Index, Report, Stats};
@@ -29,7 +29,7 @@ fn open_index(app: &AppHandle) -> Result<Index, String> {
     Index::open(&db_path(app)?).map_err(|e| e.to_string())
 }
 
-/// N'agit que sur un fichier déjà présent dans l'index.
+/// Acts only on a file already in the index.
 fn known_file(app: &AppHandle, path: &str) -> Result<(), String> {
     if open_index(app)?
         .is_indexed(path)
@@ -37,7 +37,7 @@ fn known_file(app: &AppHandle, path: &str) -> Result<(), String> {
     {
         Ok(())
     } else {
-        Err("Fichier inconnu de l'index.".into())
+        Err("File not in the index.".into())
     }
 }
 
@@ -78,7 +78,7 @@ async fn index_folder(app: AppHandle, path: String) -> Result<Report, String> {
     .map_err(|e| e.to_string())?
 }
 
-/// Retire un dossier de l'index. Les fichiers eux-mêmes ne sont pas touchés.
+/// Removes a folder from the index. The files themselves are not touched.
 #[tauri::command]
 async fn forget_folder(app: AppHandle, path: String) -> Result<u64, String> {
     open_index(&app)?
@@ -98,7 +98,7 @@ async fn stats(app: AppHandle) -> Result<Stats, String> {
     open_index(&app)?.stats().map_err(|e| e.to_string())
 }
 
-/// Ouvre le fichier avec l'application par défaut du système.
+/// Opens the file with the system's default application.
 #[tauri::command]
 async fn open_file(app: AppHandle, path: String) -> Result<(), String> {
     known_file(&app, &path)?;
@@ -123,7 +123,7 @@ async fn open_file(app: AppHandle, path: String) -> Result<(), String> {
     cmd.spawn().map(|_| ()).map_err(|e| e.to_string())
 }
 
-/// Montre le fichier dans le Finder (Mac) ou l'Explorateur (Windows).
+/// Shows the file in the Finder (Mac) or the Explorer (Windows).
 #[tauri::command]
 async fn reveal_file(app: AppHandle, path: String) -> Result<(), String> {
     known_file(&app, &path)?;
@@ -162,5 +162,5 @@ fn main() {
             reveal_file
         ])
         .run(tauri::generate_context!())
-        .expect("Blume Finder n'a pas pu démarrer");
+        .expect("Blume Finder could not start");
 }

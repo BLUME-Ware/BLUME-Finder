@@ -1,11 +1,11 @@
-//! Découpage en mots, racinisation française et extraits.
-//! Tout se passe en mémoire, sans réseau.
+//! Word splitting, French stemming and passages.
+//! Everything happens in memory, without network.
 
 use rust_stemmers::{Algorithm, Stemmer};
 use std::{collections::HashSet, sync::OnceLock};
 
-/// Marqueurs autour des mots trouvés dans un extrait (caractères de contrôle,
-/// faciles à remplacer par du gras, du surlignage, etc.).
+/// Markers around the matched words in a passage (control characters, easy to
+/// replace with bold, highlighting, etc.).
 pub const HL_START: char = '\u{1}';
 pub const HL_END: char = '\u{2}';
 
@@ -19,7 +19,7 @@ const STOP: &[&str] = &[
     "in", "is", "for", "on", "with",
 ];
 
-/// Mots ignorés seulement dans une requête (pas à l'indexation).
+/// Words ignored in a query only (not when indexing).
 const QUERY_STOP: &[&str] = &[
     "fichier",
     "fichiers",
@@ -63,8 +63,8 @@ impl Lang {
         }
     }
 
-    /// Le pluriel est retiré avant la racinisation : le stemmer français donne
-    /// sinon des racines différentes (loyer -> loi, loyers -> loyer).
+    /// The plural is removed before stemming: otherwise the French stemmer gives
+    /// different stems (loyer -> loi, loyers -> loyer).
     pub fn stem(&self, lower_word: &str) -> String {
         let w = if lower_word.chars().count() > 3 {
             lower_word
@@ -84,8 +84,8 @@ impl Default for Lang {
     }
 }
 
-/// Parcourt les mots d'un texte. La fonction reçoit (début, fin) en octets et
-/// renvoie `false` pour arrêter le parcours.
+/// Walks through the words of a text. The function receives (start, end) in bytes and
+/// returns `false` to stop the walk.
 pub fn for_each_word(text: &str, mut f: impl FnMut(usize, usize) -> bool) {
     let mut start: Option<usize> = None;
     for (i, c) in text.char_indices() {
@@ -104,7 +104,7 @@ pub fn for_each_word(text: &str, mut f: impl FnMut(usize, usize) -> bool) {
     }
 }
 
-/// Texte réduit à ses racines, séparées par des espaces, sans mots vides.
+/// Text reduced to its stems, separated by spaces, without stop words.
 pub fn stem_text(lang: &Lang, text: &str) -> String {
     let mut out = String::with_capacity(text.len() / 2);
     for_each_word(text, |s, e| {
@@ -121,7 +121,7 @@ pub fn stem_text(lang: &Lang, text: &str) -> String {
     out
 }
 
-/// Nom de fichier sans extension, réduit à ses mots en minuscules.
+/// File name without extension, reduced to its words in lower case.
 pub fn name_words(name: &str) -> String {
     let stem = match name.rfind('.') {
         Some(i) if i > 0 => &name[..i],
@@ -138,7 +138,7 @@ pub fn name_words(name: &str) -> String {
     out
 }
 
-/// Retire les accents courants pour comparer sans en tenir compte.
+/// Removes common accents to compare without taking them into account.
 pub fn fold(s: &str) -> String {
     s.chars()
         .map(|c| match c {
@@ -190,9 +190,8 @@ pub fn parse_query(lang: &Lang, q: &str) -> Query {
     }
 }
 
-/// Expression FTS5 : chaque mot doit apparaître (ou l'un d'eux avec "OR"),
-/// dans le nom du fichier ou dans son contenu, en tolérant le pluriel,
-/// les accents et la saisie partielle.
+/// FTS5 expression: each word must appear (or one of them with "OR"), in the file
+/// name or in its content, tolerating plurals, accents and partial input.
 pub fn fts_expr(q: &Query, op: &str) -> String {
     q.terms
         .iter()
@@ -223,8 +222,8 @@ fn ceil_boundary(s: &str, mut i: usize) -> usize {
     i
 }
 
-/// Extrait du texte autour du premier mot trouvé, avec les mots trouvés
-/// encadrés par HL_START / HL_END.
+/// Passage of text around the first matched word, with the matched words
+/// surrounded by HL_START / HL_END.
 pub fn make_snippet(lang: &Lang, body: &str, q: &Query) -> Option<String> {
     let body = &body[..floor_boundary(body, 3_000_000)];
     let mut found: Option<(usize, usize)> = None;

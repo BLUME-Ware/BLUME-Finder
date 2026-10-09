@@ -7,6 +7,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The `blume` command-line tool now writes its messages in English.
+
 ### Fixed
 
 - Hidden files and plain-text secret exports, such as `credentials.csv`, are no longer indexed.

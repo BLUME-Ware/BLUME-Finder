@@ -1,14 +1,14 @@
-//! Extraction du texte des fichiers, en local, sans réseau.
-//! Formats : texte brut, Markdown, CSV, HTML, PDF (avec texte), Word, PowerPoint,
-//! Excel et OpenDocument. Pas d'OCR dans cette version : les scans et les
-//! images ne sont trouvés que par leur nom.
+//! Text extraction from files, locally, without network.
+//! Formats: plain text, Markdown, CSV, HTML, PDF (with text), Word, PowerPoint,
+//! Excel and OpenDocument. No OCR in this version: scans and images are found
+//! by their name only.
 
 use std::{fs::File, io::Read, panic, path::Path};
 use zip::ZipArchive;
 
-/// Texte conservé au maximum par fichier.
+/// Maximum text kept per file.
 const MAX_TEXT: usize = 3_000_000;
-/// Au-delà de cette taille, on ne lit pas le contenu (le nom reste indexé).
+/// Beyond this size, the content is not read (the name stays indexed).
 pub const MAX_FILE_BYTES: u64 = 150 * 1024 * 1024;
 
 pub fn is_readable(ext: &str) -> bool {
@@ -33,7 +33,7 @@ pub fn is_readable(ext: &str) -> bool {
     )
 }
 
-/// Renvoie None si le fichier est illisible ou corrompu.
+/// Returns None if the file is unreadable or corrupt.
 pub fn extract_text(path: &Path, ext: &str) -> Option<String> {
     let result = panic::catch_unwind(|| extract_inner(path, ext));
     let mut text = result.ok().flatten()?;
@@ -129,7 +129,7 @@ fn xml_to_text(xml: &str) -> String {
 }
 
 fn strip_html(html: &str) -> String {
-    let lower = html.to_ascii_lowercase(); // même longueur en octets que l'original
+    let lower = html.to_ascii_lowercase(); // same length in bytes as the original
     let mut out = String::with_capacity(html.len() / 3);
     let mut pos = 0;
     while let Some(rel) = html[pos..].find('<') {

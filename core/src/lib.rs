@@ -1,11 +1,11 @@
-//! Blume Finder : moteur de recherche dans le contenu de tes fichiers.
+//! Blume Finder: search engine for the content of your files.
 //!
-//! Règles de ce moteur :
-//! - il ne fait aucune requête réseau (aucune dépendance réseau) ;
-//! - il ne modifie, ne déplace et ne supprime jamais un fichier : il lit seulement ;
-//! - il n'indexe jamais les fichiers de secrets (clés, .env, trousseaux) ni les
-//!   dossiers cachés, applications et dossiers de dépendances ;
-//! - l'index contient le texte de tes fichiers : il reste sur ta machine.
+//! Rules of this engine:
+//! - it makes no network request (no networking dependency);
+//! - it never modifies, moves or deletes a file: it only reads;
+//! - it never indexes secret files (keys, .env, keychains), nor hidden folders,
+//!   applications and dependency folders;
+//! - the index holds the text of your files: it stays on your machine.
 
 pub mod extract;
 pub mod text;
@@ -22,6 +22,9 @@ use walkdir::{DirEntry, WalkDir};
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+/// Version of the index format, stored in the SQLite `user_version` header field.
+const SCHEMA_VERSION: i64 = 1;
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Hit {
     pub path: String,
@@ -29,8 +32,8 @@ pub struct Hit {
     pub ext: String,
     pub size: i64,
     pub mtime: i64,
-    /// Extrait avec les mots trouvés entre `text::HL_START` et `text::HL_END`.
-    /// Absent quand le fichier n'a été trouvé que par son nom.
+    /// Passage with the matched words between `text::HL_START` and `text::HL_END`.
+    /// Absent when the file was found by its name only.
     pub snippet: Option<String>,
     pub score: f64,
 }
@@ -41,7 +44,7 @@ pub struct Report {
     pub indexed: u64,
     pub unchanged: u64,
     pub removed: u64,
-    /// Fichiers trouvables seulement par leur nom (images, scans, formats non lus).
+    /// Files that can be found by their name only (images, scans, formats not read).
     pub name_only: u64,
     pub skipped_sensitive: u64,
     pub errors: u64,
@@ -72,7 +75,14 @@ pub struct Index {
 impl Index {
     pub fn open(path: &Path) -> Result<Self> {
         let conn = Connection::open(path)?;
-        // L'index contient le texte de tes fichiers : lecture réservée à toi.
+        let version: i64 = conn.query_row("PRAGMA user_version", [], |r| r.get(0))?;
+        if version > SCHEMA_VERSION {
+            return Err(format!(
+                "this index was written by a newer version of Blume Finder (format {version})"
+            )
+            .into());
+        }
+        // The index holds the text of your files: readable by you only.
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
@@ -108,14 +118,26 @@ impl Index {
         if !fts_secure {
             conn.execute("INSERT INTO fts(fts, rank) VALUES('secure-delete', 1)", [])?;
         }
+        if version == 0 {
+            // Before the format had a version, statuses were stored under French names.
+            conn.execute_batch(
+                "BEGIN IMMEDIATE;
+                 UPDATE files SET status='too_large' WHERE status='trop_gros';
+                 UPDATE files SET status='empty' WHERE status='vide';
+                 UPDATE files SET status='unreadable' WHERE status='illisible';
+                 UPDATE files SET status='name_only' WHERE status='nom_seul';
+                 PRAGMA user_version=1;
+                 COMMIT;",
+            )?;
+        }
         Ok(Index {
             conn,
             lang: text::Lang::new(),
         })
     }
 
-    /// Indexe un dossier. Les fichiers inchangés (même taille, même date) sont ignorés,
-    /// les fichiers disparus sont retirés de l'index.
+    /// Indexes a folder. Unchanged files (same size, same date) are skipped, files that
+    /// disappeared are removed from the index.
     pub fn index_folder(
         &mut self,
         root: &Path,
@@ -228,16 +250,16 @@ impl Index {
                 .unwrap_or_default();
             let (status, body) = if extract::is_readable(&ext) {
                 if size as u64 > extract::MAX_FILE_BYTES {
-                    ("trop_gros", None)
+                    ("too_large", None)
                 } else {
                     match extract::extract_text(entry.path(), &ext) {
                         Some(t) if !t.trim().is_empty() => ("ok", Some(t)),
-                        Some(_) => ("vide", None),
-                        None => ("illisible", None),
+                        Some(_) => ("empty", None),
+                        None => ("unreadable", None),
                     }
                 }
             } else {
-                ("nom_seul", None)
+                ("name_only", None)
             };
             if body.is_none() {
                 rep.name_only += 1;
@@ -348,8 +370,8 @@ impl Index {
         Ok(())
     }
 
-    /// Cherche d'abord les fichiers qui contiennent tous les mots importants de la
-    /// requête ; s'il n'y en a aucun, ceux qui en contiennent au moins un.
+    /// Looks first for the files that contain all the significant words of the query; if
+    /// there are none, for those that contain at least one.
     pub fn search(&self, query: &str, limit: usize) -> Result<Vec<Hit>> {
         let q = text::parse_query(&self.lang, query);
         if q.terms.is_empty() {
@@ -399,7 +421,7 @@ impl Index {
         Ok(hits)
     }
 
-    /// Dossiers indexés, avec le nombre de fichiers de chacun.
+    /// Indexed folders, with the number of files of each.
     pub fn roots(&self) -> Result<Vec<(String, i64)>> {
         let mut st = self
             .conn
@@ -410,7 +432,7 @@ impl Index {
         Ok(rows)
     }
 
-    /// Retire un dossier de l'index. Les fichiers eux-mêmes ne sont pas touchés.
+    /// Removes a folder from the index. The files themselves are not touched.
     pub fn forget_root(&mut self, root: &str) -> Result<u64> {
         let removed = self.write_transaction(|index| {
             index.conn.execute(
@@ -429,7 +451,7 @@ impl Index {
         Ok(removed)
     }
 
-    /// Vrai si ce chemin figure dans l'index (sert à n'ouvrir que des fichiers connus).
+    /// True if this path is in the index (used to open known files only).
     pub fn is_indexed(&self, path: &str) -> Result<bool> {
         Ok(self
             .conn
@@ -443,9 +465,9 @@ impl Index {
         Ok(Stats {
             files: count("SELECT COUNT(*) FROM files")?,
             with_text: count("SELECT COUNT(*) FROM files WHERE status='ok'")?,
-            name_only: count("SELECT COUNT(*) FROM files WHERE status='nom_seul'")?,
+            name_only: count("SELECT COUNT(*) FROM files WHERE status='name_only'")?,
             unreadable: count(
-                "SELECT COUNT(*) FROM files WHERE status IN ('illisible','vide','trop_gros')",
+                "SELECT COUNT(*) FROM files WHERE status IN ('unreadable','empty','too_large')",
             )?,
             text_bytes: count("SELECT COALESCE(SUM(LENGTH(body)),0) FROM texts")?,
         })
@@ -482,14 +504,14 @@ fn is_excluded(e: &DirEntry, home: Option<&Path>) -> bool {
     if name.ends_with(".app") || name.ends_with(".framework") || name.ends_with(".photoslibrary") {
         return true;
     }
-    // Dossiers système de l'utilisateur (Library sur Mac, AppData sur Windows).
+    // The user's system folders (Library on Mac, AppData on Windows).
     if matches!(name.as_str(), "library" | "appdata") && e.path().parent() == home {
         return true;
     }
     false
 }
 
-/// Fichiers de secrets : jamais lus, jamais indexés, même par leur nom.
+/// Secret files: never read, never indexed, not even by their name.
 fn is_sensitive_name(name: &str) -> bool {
     let n = name.to_lowercase();
     n.starts_with(".env")
@@ -550,10 +572,7 @@ mod tests {
         idx.forget_root(&roots[0].0).unwrap();
         assert!(idx.roots().unwrap().is_empty());
         assert!(idx.search("loyer", 5).unwrap().is_empty());
-        assert!(
-            docs.join("a.txt").exists(),
-            "les fichiers ne doivent jamais être touchés"
-        );
+        assert!(docs.join("a.txt").exists(), "files must never be touched");
         let _ = fs::remove_dir_all(&dir);
     }
 

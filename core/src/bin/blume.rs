@@ -1,8 +1,8 @@
-//! Interface en ligne de commande de Blume Finder (pour tester le moteur).
+//! Command-line interface of Blume Finder (to test the engine).
 //!
-//!   blume index <dossier> [--db fichier]
-//!   blume search <requête> [--db fichier] [--limit N] [--json]
-//!   blume stats [--db fichier]
+//!   blume index <folder> [--db file]
+//!   blume search <query> [--db file] [--limit N] [--json]
+//!   blume stats [--db file]
 
 use blume_finder_core::{text, Index};
 use std::{
@@ -13,7 +13,7 @@ use std::{
 
 fn usage() -> ! {
     eprintln!(
-        "Usage :\n  blume index <dossier> [--db fichier]\n  blume search <requête> [--db fichier] [--limit N] [--json]\n  blume stats [--db fichier]"
+        "Usage:\n  blume index <folder> [--db file]\n  blume search <query> [--db file] [--limit N] [--json]\n  blume stats [--db file]"
     );
     process::exit(2);
 }
@@ -49,7 +49,7 @@ fn main() {
     }
 
     if let Err(e) = run(&rest, &db, limit, json) {
-        eprintln!("Erreur : {e}");
+        eprintln!("Error: {e}");
         process::exit(1);
     }
 }
@@ -59,7 +59,7 @@ fn run(rest: &[String], db: &Path, limit: usize, json: bool) -> blume_finder_cor
     match rest[0].as_str() {
         "index" => {
             let folder = rest.get(1).unwrap_or_else(|| usage());
-            // Certains PDF abîmés font paniquer la bibliothèque : on ignore le fichier en silence.
+            // Some damaged PDFs make the library panic: the file is skipped silently.
             let previous = std::panic::take_hook();
             std::panic::set_hook(Box::new(|_| {}));
             let report = index.index_folder(&PathBuf::from(folder), |_| {});
@@ -69,7 +69,7 @@ fn run(rest: &[String], db: &Path, limit: usize, json: bool) -> blume_finder_cor
                 println!("{}", serde_json::to_string_pretty(&report)?);
             } else {
                 println!(
-                    "{} fichiers vus, {} indexés, {} inchangés, {} retirés, {} trouvables par le nom seulement, {} secrets ignorés, {} erreurs ({} ms)",
+                    "{} files seen, {} indexed, {} unchanged, {} removed, {} findable by name only, {} secrets skipped, {} errors ({} ms)",
                     report.seen, report.indexed, report.unchanged, report.removed,
                     report.name_only, report.skipped_sensitive, report.errors, report.millis
                 );
@@ -81,10 +81,10 @@ fn run(rest: &[String], db: &Path, limit: usize, json: bool) -> blume_finder_cor
             if json {
                 println!("{}", serde_json::to_string_pretty(&hits)?);
             } else if hits.is_empty() {
-                println!("Aucun résultat pour « {query} ».");
+                println!("No results for \"{query}\".");
             } else {
                 for (n, h) in hits.iter().enumerate() {
-                    println!("{}. {}  ({} Ko)", n + 1, h.name, h.size / 1024);
+                    println!("{}. {}  ({} KB)", n + 1, h.name, h.size / 1024);
                     println!("   {}", h.path);
                     if let Some(s) = &h.snippet {
                         let s = s
@@ -105,16 +105,14 @@ fn run(rest: &[String], db: &Path, limit: usize, json: bool) -> blume_finder_cor
                 println!("{}", serde_json::to_string(&v)?);
             } else {
                 for (p, n) in roots {
-                    println!("{n} fichiers  {p}");
+                    println!("{n} files  {p}");
                 }
             }
         }
         "forget" => {
             let folder = rest.get(1).unwrap_or_else(|| usage());
             let n = index.forget_root(folder)?;
-            println!(
-                "{n} fichiers retirés de l'index (les fichiers eux-mêmes ne sont pas touchés)."
-            );
+            println!("{n} files removed from the index (the files themselves are not touched).");
         }
         "stats" => {
             let s = index.stats()?;
@@ -122,7 +120,7 @@ fn run(rest: &[String], db: &Path, limit: usize, json: bool) -> blume_finder_cor
                 println!("{}", serde_json::to_string_pretty(&s)?);
             } else {
                 println!(
-                    "{} fichiers, dont {} lus en profondeur, {} trouvables par le nom seulement, {} illisibles ({} Ko de texte)",
+                    "{} files, of which {} read in full, {} findable by name only, {} unreadable ({} KB of text)",
                     s.files, s.with_text, s.name_only, s.unreadable, s.text_bytes / 1024
                 );
             }
