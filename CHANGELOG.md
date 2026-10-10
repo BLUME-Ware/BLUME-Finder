@@ -7,19 +7,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Changed
+### Added
 
-- The interface is rebuilt with Svelte and TypeScript in a single centered view, and follows
-  the system language, in English or French.
-- The `blume` command-line tool now writes its messages in English.
-
-### Fixed
-
-- A folder removed while the app re-reads folders at launch no longer comes back, and the folder
-  being read can no longer be removed until its reading ends.
-- Hidden files and plain-text secret exports, such as `credentials.csv`, are no longer indexed.
-- Removing a folder while another one is being indexed no longer fails with "database is locked".
-- An indexed folder and its subfolders no longer overlap: adding a subfolder of an indexed folder
-  is refused, and adding a parent folder takes over the indexed folders it contains.
-- Text removed from the index, when a folder is removed or a file changes or disappears, is now
-  erased from the index file and its journal instead of only being marked as deleted.
+- First public release, for macOS 13 or later on Apple Silicon and Intel, as a disk image with an
+  ad-hoc signature, not notarized.
+- Search of files by the words they contain and by their name, tolerating plurals, accents and
+  partial words, with the matching passage highlighted.
+- Text extraction from plain text, Markdown, CSV, HTML, PDF with a text layer, Word, PowerPoint,
+  Excel and OpenDocument files. Other files, such as scans and images, are found by name only.
+- A local SQLite index, re-read at launch for changed files only, with removed text erased from
+  the index file.
+- Folder management: adding and removing indexed folders, without overlap between a folder and
+  its subfolders.
+- Opening a result, or showing it in its folder.
+- Read-only access to files, no network access, and hidden and secret files never indexed.
+- A single-view interface in light and dark themes, in English or French following the system
+  language.
+- The `blume` command-line tool, to index and search from a terminal.

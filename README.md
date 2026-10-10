@@ -28,6 +28,19 @@ app/src-tauri/capabilities/default.json  # permissions granted to the interface
 scripts/check-no-network.sh              # automated check, run on every change
 ```
 
+## Installing on macOS
+
+Blume Finder 0.1.0 runs on macOS 13 or later, on Apple Silicon and Intel Macs. The disk image is published on the [releases page](https://github.com/BLUME-Ware/BLUME-Finder/releases). Once the image is opened, the app is dragged into the Applications folder.
+
+The app is not notarized by Apple, which requires a paid developer account. On first launch, macOS therefore refuses to open it and shows a message saying that Apple could not verify it. To allow it, once only:
+
+1. Open the app a first time and close the message with "Done".
+2. Open System Settings, then Privacy & Security.
+3. In the Security section, next to the message about Blume Finder, choose "Open Anyway", then confirm with the account password.
+4. In the window that follows, choose "Open Anyway" again.
+
+The following launches open the app directly. The source code of the published version is the one tagged on GitHub, and the app can also be built from it, as described below.
+
 ## Running it
 
 Requirements: [Rust](https://rustup.rs) and [Node.js](https://nodejs.org) 22 or 24. On Mac, install the Xcode command line tools first (`xcode-select --install`). On Windows, the WebView2 runtime is required (already present on recent versions).
@@ -91,6 +104,19 @@ Formats pris en charge : texte brut, Markdown, CSV, HTML, PDF avec couche texte,
 - L'index contient le texte des fichiers indexés. Il est stocké localement, avec des droits réservés au propriétaire sur Mac et Linux. Le supprimer efface tout ce que l'application connaît.
 
 Ces points sont vérifiables dans le code, avec les trois éléments listés dans la section anglaise : les dépendances du moteur, la politique de sécurité de contenu et les permissions accordées à l'interface.
+
+## Installation sur macOS
+
+Blume Finder 0.1.0 fonctionne sur macOS 13 ou plus récent, sur les Mac Apple Silicon et Intel. L'image disque est publiée sur la [page des versions](https://github.com/BLUME-Ware/BLUME-Finder/releases). Une fois l'image ouverte, l'application se glisse dans le dossier Applications.
+
+L'application n'est pas notarisée par Apple, ce qui demande un compte développeur payant. Au premier lancement, macOS refuse donc de l'ouvrir et affiche un message indiquant qu'Apple n'a pas pu la vérifier. Pour l'autoriser, une seule fois :
+
+1. Ouvrir l'application une première fois et fermer le message avec « Terminé ».
+2. Ouvrir Réglages Système, puis Confidentialité et sécurité.
+3. Dans la section Sécurité, à côté du message concernant Blume Finder, choisir « Ouvrir quand même », puis confirmer avec le mot de passe du compte.
+4. Dans la fenêtre qui suit, choisir de nouveau « Ouvrir quand même ».
+
+Les lancements suivants ouvrent directement l'application. Le code source de la version publiée est celui marqué sur GitHub, et l'application peut aussi être construite à partir de lui, comme décrit ci-dessous.
 
 ## Lancement
 
