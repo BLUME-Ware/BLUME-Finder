@@ -10,6 +10,7 @@ export const fr: Messages = {
   folderChip: (name, count) => `${name} · ${files(count)}`,
   removeFolderTitle: "Retirer ce dossier de l'index (les fichiers ne sont pas touchés)",
   removeFolderLabel: (name) => `Retirer ${name} de l'index`,
+  folderBeingRead: "Ce dossier est en cours de lecture",
   progress: (seen, current) => `Lecture en cours… ${files(seen)} vus. ${current}`,
   ready: (name, s) => {
     let text = `« ${name} » est prêt : ${files(s.seen)}`;
