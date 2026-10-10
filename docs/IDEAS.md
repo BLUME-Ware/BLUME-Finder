@@ -9,6 +9,8 @@ until after 3 November 2026. Nothing here is a commitment.
 - OCR for scans and images.
 - Tuning of the name versus content weight in ranking.
 - Silencing the font warnings printed by `pdf-extract`.
+- `blume stats` undercounts the text size when a document contains a NUL character (SQLite `LENGTH` stops there), and counts files over the size limit as unreadable while indexing reports them as findable by name only.
+- Memory use of `pdf-extract` on large PDFs: 230 MB peak for a 5 MB, 186-page report; a PDF near the 150 MB limit is untested.
 - UI languages beyond English and French.
 - The other sources of Spotlight: mail, messages, contacts, calendar, web. Not planned (ADR 0012).
 - Honoring the Windows hidden attribute; hidden files and folders are recognized by their leading dot only.
