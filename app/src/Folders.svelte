@@ -5,12 +5,13 @@
 
   interface Props {
     folders: Folder[];
+    reading: ReadonlySet<string>;
     busy: boolean;
     onadd: () => void;
     onremove: (path: string) => void;
   }
 
-  let { folders, busy, onadd, onremove }: Props = $props();
+  let { folders, reading, busy, onadd, onremove }: Props = $props();
 </script>
 
 <section class="folders" aria-label={t.foldersLabel}>
@@ -20,8 +21,9 @@
         <span class="name">{t.folderChip(shortName(folder.path), folder.files)}</span>
         <button
           type="button"
-          title={t.removeFolderTitle}
+          title={reading.has(folder.path) ? t.folderBeingRead : t.removeFolderTitle}
           aria-label={t.removeFolderLabel(shortName(folder.path))}
+          disabled={reading.has(folder.path)}
           onclick={() => onremove(folder.path)}>×</button
         >
       </li>
@@ -79,8 +81,13 @@
     transition: color 0.15s;
   }
 
-  li button:hover {
+  li button:hover:enabled {
     color: var(--error);
+  }
+
+  li button:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 
   .add {

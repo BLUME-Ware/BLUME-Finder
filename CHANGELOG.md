@@ -15,6 +15,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- A folder removed while the app re-reads folders at launch no longer comes back, and the folder
+  being read can no longer be removed until its reading ends.
 - Hidden files and plain-text secret exports, such as `credentials.csv`, are no longer indexed.
 - Removing a folder while another one is being indexed no longer fails with "database is locked".
 - An indexed folder and its subfolders no longer overlap: adding a subfolder of an indexed folder

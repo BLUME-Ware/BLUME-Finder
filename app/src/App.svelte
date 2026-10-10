@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { SvelteSet } from "svelte/reactivity";
   import * as api from "./lib/api";
   import { shortName } from "./lib/format";
   import { t } from "./lib/i18n";
@@ -12,6 +13,10 @@
   let noResults = $state("");
   let status = $state({ text: "", error: false });
   let busy = $state(0);
+  // Both are filled before any await, so a removal and a reading can never start on the same
+  // folder at once.
+  const reading = new SvelteSet<string>();
+  const removing = new Set<string>();
   let field: HTMLInputElement;
   let searchNumber = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -26,6 +31,7 @@
 
   async function index(path: string) {
     busy += 1;
+    reading.add(path);
     try {
       const report = await api.indexFolder(path);
       await loadFolders();
@@ -33,6 +39,7 @@
     } catch (e) {
       say(t.cannotRead(shortName(path), String(e)), true);
     } finally {
+      reading.delete(path);
       busy -= 1;
     }
   }
@@ -55,6 +62,8 @@
   }
 
   async function removeFolder(path: string) {
+    if (reading.has(path)) return;
+    removing.add(path);
     try {
       await api.forgetFolder(path);
       await loadFolders();
@@ -62,7 +71,13 @@
       runSearch();
     } catch (e) {
       say(t.cannotRemove(String(e)), true);
+    } finally {
+      removing.delete(path);
     }
+  }
+
+  function stillListed(path: string) {
+    return !removing.has(path) && folders.some((folder) => folder.path === path);
   }
 
   async function act(action: (path: string) => Promise<void>, path: string) {
@@ -115,8 +130,11 @@
         return;
       }
       runSearch();
-      // Only changed files are read again.
-      for (const folder of folders) await index(folder.path);
+      // Only changed files are read again. A folder removed since launch is skipped, or reading
+      // it would bring it back.
+      for (const path of folders.map((folder) => folder.path)) {
+        if (stillListed(path)) await index(path);
+      }
     })();
   });
 </script>
@@ -133,7 +151,7 @@
     spellcheck="false"
     placeholder={t.searchPlaceholder}
   />
-  <Folders {folders} busy={busy > 0} onadd={addFolder} onremove={removeFolder} />
+  <Folders {folders} {reading} busy={busy > 0} onadd={addFolder} onremove={removeFolder} />
   <p class="status" class:error={status.error} aria-live="polite">{status.text}</p>
   <div class="results">
     {#if noResults}

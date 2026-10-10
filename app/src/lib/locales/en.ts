@@ -15,6 +15,7 @@ export const en = {
   folderChip: (name: string, count: number) => `${name} · ${files(count)}`,
   removeFolderTitle: "Remove this folder from the index (the files are not touched)",
   removeFolderLabel: (name: string) => `Remove ${name} from the index`,
+  folderBeingRead: "This folder is being read",
   progress: (seen: number, current: string) => `Reading… ${files(seen)} seen. ${current}`,
   ready: (name: string, s: Summary) => {
     let text = `"${name}" is ready: ${files(s.seen)}`;
