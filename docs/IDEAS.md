@@ -5,7 +5,6 @@ until after 3 November 2026. Nothing here is a commitment.
 
 ## Product
 
-- Search by meaning with a local, multilingual embedding model.
 - OCR for scans and images.
 - Tuning of the name versus content weight in ranking.
 - Silencing the font warnings printed by `pdf-extract`.
@@ -14,7 +13,7 @@ until after 3 November 2026. Nothing here is a commitment.
 - UI languages beyond English and French.
 - The other sources of Spotlight: mail, messages, contacts, calendar, web. Not planned (ADR 0012).
 - Honoring the Windows hidden attribute; hidden files and folders are recognized by their leading dot only.
-- Windows and Linux releases. The code is kept portable and tested on both in CI; only packaging and release are deferred.
+- Linux release. The code is kept portable and tested in CI; only packaging and release are deferred. The Windows release is version 0.3.0 (ADR 0013).
 - macOS signing and notarization, if a free route opens (for example Apple's fee waiver for registered non-profit organizations).
 
 ## Engineering practices

@@ -1,7 +1,7 @@
 # 0012. Product direction: a smarter, local search for the whole computer
 
 Date: 2026-10-08
-Status: Accepted
+Status: Partly superseded by 0013 (order of versions)
 
 ## Context
 

@@ -16,7 +16,8 @@ and its consequences. A record is never rewritten once accepted; a new record su
 | [0009](0009-versioning.md) | Semantic versioning, first release 0.1.0 | Accepted |
 | [0010](0010-quality-gates.md) | Single set of quality gates | Accepted |
 | [0011](0011-dependency-audit-exceptions.md) | Exceptions to the dependency audit | Accepted |
-| [0012](0012-product-direction.md) | Product direction: a smarter, local search for the whole computer | Accepted |
+| [0012](0012-product-direction.md) | Product direction: a smarter, local search for the whole computer | Partly superseded by 0013 |
+| [0013](0013-search-by-meaning-as-0.2.0.md) | Search by meaning as version 0.2.0 | Accepted |
 
 New records follow the same structure:
 
