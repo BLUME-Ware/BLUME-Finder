@@ -74,7 +74,7 @@ These checks also require [cargo-deny](https://github.com/EmbarkStudios/cargo-de
 
 ## Not included yet
 
-Search by meaning (finding a document from an idea rather than exact words), OCR for scans and images, signed releases. These are directions, not commitments.
+Search by meaning, finding a document from an idea rather than its exact words, is planned as version 0.2.0, with a model running on the computer. The Windows release is planned as version 0.3.0. OCR for scans and images, and signed releases, are directions, not commitments.
 
 ## License
 
@@ -128,7 +128,7 @@ Chaque modification passe les mêmes contrôles en local et en intégration cont
 
 ## Pas encore inclus
 
-La recherche par le sens (retrouver un document à partir d'une idée plutôt que de mots exacts), l'OCR pour les scans et les images, les versions signées. Ce sont des orientations, pas des engagements.
+La recherche par le sens, qui retrouve un document à partir d'une idée plutôt que de ses mots exacts, est prévue pour la version 0.2.0, avec un modèle qui fonctionne sur l'ordinateur. La version pour Windows est prévue en 0.3.0. L'OCR pour les scans et les images et les versions signées sont des orientations, pas des engagements.
 
 ## Licence
 
