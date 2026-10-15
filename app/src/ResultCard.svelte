@@ -38,6 +38,13 @@
     padding: 16px 20px;
     background: var(--surface);
     border-radius: 14px;
+    animation: appear 0.2s ease-out;
+  }
+
+  @keyframes appear {
+    from {
+      opacity: 0;
+    }
   }
 
   h2 {

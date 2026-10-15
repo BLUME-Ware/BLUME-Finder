@@ -168,12 +168,15 @@
     width: 100%;
     max-width: 720px;
     margin: 0 auto;
-    padding: 26vh 24px 32px;
-    transition: padding-top 0.25s ease;
+    padding: 48px 24px 32px;
+    transform: translateY(calc(26vh - 48px));
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
   }
 
+  /* Moving the view with a transform instead of its padding keeps the page layout still while
+     results arrive, so the motion does not stutter. */
   main.active {
-    padding-top: 48px;
+    transform: none;
   }
 
   h1 {
