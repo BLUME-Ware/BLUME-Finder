@@ -169,7 +169,9 @@
     max-width: 720px;
     margin: 0 auto;
     padding: 48px 24px 32px;
-    transform: translateY(calc(26vh - 48px));
+    /* 130px is the top padding plus half the height of the title and the search field, so both
+       sit at the vertical center of the window. */
+    transform: translateY(calc(50vh - 130px));
     transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
   }
 
