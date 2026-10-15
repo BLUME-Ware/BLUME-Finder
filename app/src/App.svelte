@@ -20,6 +20,9 @@
   let field: HTMLInputElement;
   let searchNumber = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let view: HTMLElement;
+  let active = $derived(query.trim() !== "");
+  let fieldTop: number | undefined;
 
   function say(text: string, error = false) {
     status = { text, error };
@@ -119,6 +122,24 @@
     }
   }
 
+  // The position is set by the layout alone, so it follows a window resize in the same frame. Only
+  // the switch between centered and raised is animated, from where the field was to where it is.
+  $effect.pre(() => {
+    void active;
+    fieldTop = field?.offsetTop;
+  });
+
+  $effect(() => {
+    void active;
+    if (fieldTop === undefined) return;
+    const shift = fieldTop - field.offsetTop;
+    if (shift === 0) return;
+    view.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], {
+      duration: 300,
+      easing: "cubic-bezier(0.2, 0, 0, 1)",
+    });
+  });
+
   onMount(() => {
     api.onProgress((p) => say(t.progress(p.seen, shortName(p.current))));
     field.focus();
@@ -139,7 +160,7 @@
   });
 </script>
 
-<main class:active={query.trim() !== ""}>
+<main bind:this={view} class:active>
   <h1>BLUME</h1>
   <input
     bind:this={field}
@@ -168,17 +189,13 @@
     width: 100%;
     max-width: 720px;
     margin: 0 auto;
-    padding: 48px 24px 32px;
-    /* 130px is the top padding plus half the height of the title and the search field, so both
-       sit at the vertical center of the window. */
-    transform: translateY(calc(50vh - 130px));
-    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+    /* 136.5px is the height of the title and its margin plus half the search field, so the middle
+       of the field sits at the vertical center of the window. */
+    padding: calc(50vh - 136.5px) 24px 32px;
   }
 
-  /* Moving the view with a transform instead of its padding keeps the page layout still while
-     results arrive, so the motion does not stutter. */
   main.active {
-    transform: none;
+    padding-top: 48px;
   }
 
   h1 {
