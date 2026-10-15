@@ -9,7 +9,7 @@ const files = (n: number) => `${n} ${n === 1 ? "file" : "files"}`;
 
 export const en = {
   searchPlaceholder:
-    'Describe what you are looking for: "rental contract", "train tickets Toulouse"…',
+    'Search: "rental contract", "train tickets"…',
   foldersLabel: "Indexed folders",
   addFolder: "Add a folder",
   folderChip: (name: string, count: number) => `${name} · ${files(count)}`,

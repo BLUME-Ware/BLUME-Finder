@@ -4,7 +4,7 @@ const files = (n: number) => `${n} ${n > 1 ? "fichiers" : "fichier"}`;
 
 export const fr: Messages = {
   searchPlaceholder:
-    "Décrire ce qui est recherché : « contrat de location », « billets de train Toulouse »…",
+    "Rechercher : « contrat de location », « billets de train »…",
   foldersLabel: "Dossiers indexés",
   addFolder: "Ajouter un dossier",
   folderChip: (name, count) => `${name} · ${files(count)}`,
