@@ -15,6 +15,9 @@ until after 3 November 2026. Nothing here is a commitment.
 - Honoring the Windows hidden attribute; hidden files and folders are recognized by their leading dot only.
 - Linux release. The code is kept portable and tested in CI; only packaging and release are deferred. The Windows release is version 0.3.0 (ADR 0013).
 - macOS signing and notarization, if a free route opens (for example Apple's fee waiver for registered non-profit organizations).
+- Translucent window with the desktop blurred behind it, as in Finder; needs a transparent window and Tauri's `macOSPrivateApi`, and behaves differently on Windows and Linux.
+- Search field fixed at the top while results scroll beneath it, with a translucent, blurred backdrop (CSS only).
+- An easier update path without any network code in the app: a BLUME-Ware Homebrew tap (`brew upgrade`), or a link that opens the releases page in the browser. An in-app updater is excluded by rule 2.
 
 ## Engineering practices
 
