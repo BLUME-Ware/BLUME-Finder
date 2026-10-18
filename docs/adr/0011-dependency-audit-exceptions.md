@@ -18,6 +18,11 @@ replace without giving up something more important.
   is `ttf-parser` still in the dependency tree, and can reading a PDF now reach it?
 - RUSTSEC-2024-0370 (`proc-macro-error`, unmaintained) is ignored. It is a build-time macro crate
   pulled in only by the Linux GTK stack of Tauri.
+- RUSTSEC-2026-0367, RUSTSEC-2026-0368 and RUSTSEC-2026-0369 (`zip` 2, added on 18 October 2026)
+  are ignored. They concern extracting an archive to disk, where symbolic links or SUID bits can
+  escape the destination. The engine never extracts: it reads the entries of Office and
+  OpenDocument files into memory and writes nothing. The fix needs `zip` 9, a major upgrade that
+  is deferred until after 0.1.0, when these exceptions are removed.
 
 ## Consequences
 

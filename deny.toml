@@ -14,6 +14,9 @@ yanked = "deny"
 unused-ignored-advisory = "allow"
 ignore = [
   { id = "RUSTSEC-2024-0370", reason = "proc-macro-error is unmaintained, not vulnerable. It is a build-time macro crate pulled in only by the Linux GTK stack of Tauri, with no replacement available on our side." },
+  { id = "RUSTSEC-2026-0367", reason = "zip extraction to disk (ZipArchive::extract, ZipStreamReader::extract) can follow symlinks or keep SUID bits. The engine never extracts: it reads document entries into memory with by_index and by_name and writes nothing. zip is to be upgraded to 9 after 0.1.0." },
+  { id = "RUSTSEC-2026-0368", reason = "zip extraction to disk (ZipArchive::extract, ZipStreamReader::extract) can follow symlinks or keep SUID bits. The engine never extracts: it reads document entries into memory with by_index and by_name and writes nothing. zip is to be upgraded to 9 after 0.1.0." },
+  { id = "RUSTSEC-2026-0369", reason = "zip extraction to disk (ZipArchive::extract, ZipStreamReader::extract) can follow symlinks or keep SUID bits. The engine never extracts: it reads document entries into memory with by_index and by_name and writes nothing. zip is to be upgraded to 9 after 0.1.0." },
   { id = "RUSTSEC-2026-0192", reason = "ttf-parser is unmaintained, not vulnerable. lopdf 0.42 requires it only to embed fonts when creating a PDF (FontData), a path the engine never takes: it only reads PDFs. lopdf 0.42 is needed for the RUSTSEC-2026-0187 fix." },
 ]
 
