@@ -8,8 +8,15 @@ export interface Summary {
 const files = (n: number) => `${n} ${n === 1 ? "file" : "files"}`;
 
 export const en = {
-  searchPlaceholder:
-    'Search: "rental contract", "train tickets"…',
+  searchLabel: "Search",
+  searchTips: [
+    "rental contract",
+    "electricity bill March",
+    "train tickets Toulouse",
+    "roof repair quote",
+    "proof of address",
+    "doctor's prescription",
+  ],
   foldersLabel: "Indexed folders",
   addFolder: "Add a folder",
   folderChip: (name: string, count: number) => `${name} · ${files(count)}`,

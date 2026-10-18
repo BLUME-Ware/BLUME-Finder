@@ -13,6 +13,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   ad-hoc signature, not notarized.
 - Search of files by the words they contain and by their name, tolerating plurals, accents and
   partial words, with the matching passage highlighted.
+- Examples of everyday searches typed in the empty search field.
 - Text extraction from plain text, Markdown, CSV, HTML, PDF with a text layer, Word, PowerPoint,
   Excel and OpenDocument files. Other files, such as scans and images, are found by name only.
 - A local SQLite index, re-read at launch for changed files only, with removed text erased from

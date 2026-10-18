@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { SvelteSet } from "svelte/reactivity";
+  import { fade } from "svelte/transition";
   import * as api from "./lib/api";
   import { shortName } from "./lib/format";
   import { t } from "./lib/i18n";
@@ -18,11 +19,14 @@
   const reading = new SvelteSet<string>();
   const removing = new Set<string>();
   let field: HTMLInputElement;
+  let box: HTMLElement;
   let searchNumber = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let view: HTMLElement;
   let active = $derived(query.trim() !== "");
   let fieldTop: number | undefined;
+  let tip = $state("");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function say(text: string, error = false) {
     status = { text, error };
@@ -126,19 +130,50 @@
   // the switch between centered and raised is animated, from where the field was to where it is.
   $effect.pre(() => {
     void active;
-    fieldTop = field?.offsetTop;
+    fieldTop = box?.offsetTop;
   });
 
   $effect(() => {
     void active;
     if (fieldTop === undefined) return;
-    const shift = fieldTop - field.offsetTop;
+    const shift = fieldTop - box.offsetTop;
     if (shift === 0) return;
     view.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], {
       duration: 300,
       easing: "cubic-bezier(0.2, 0, 0, 1)",
     });
   });
+
+  // Each tip is typed, held, then erased. With reduced motion the tips are only swapped.
+  function cycleTips() {
+    let index = 0;
+    let length = 0;
+    let erasing = false;
+    let handle: ReturnType<typeof setTimeout>;
+    const step = () => {
+      const text = t.searchTips[index];
+      if (reduced) {
+        tip = text;
+        index = (index + 1) % t.searchTips.length;
+        handle = setTimeout(step, 3500);
+        return;
+      }
+      length += erasing ? -1 : 1;
+      tip = text.slice(0, length);
+      if (!erasing && length === text.length) {
+        erasing = true;
+        handle = setTimeout(step, 2000);
+      } else if (erasing && length === 0) {
+        erasing = false;
+        index = (index + 1) % t.searchTips.length;
+        handle = setTimeout(step, 400);
+      } else {
+        handle = setTimeout(step, erasing ? 20 : 45);
+      }
+    };
+    step();
+    return () => clearTimeout(handle);
+  }
 
   onMount(() => {
     api.onProgress((p) => say(t.progress(p.seen, shortName(p.current))));
@@ -157,21 +192,32 @@
         if (stillListed(path)) await index(path);
       }
     })();
+    return cycleTips();
   });
 </script>
 
 <main bind:this={view} class:active>
   <h1>BLUME</h1>
-  <input
-    bind:this={field}
+  <div class="field" bind:this={box}>
+    <input
+      bind:this={field}
     bind:value={query}
-    oninput={scheduleSearch}
-    onkeydown={onKeydown}
-    type="search"
-    autocomplete="off"
-    spellcheck="false"
-    placeholder={t.searchPlaceholder}
-  />
+      oninput={scheduleSearch}
+      onkeydown={onKeydown}
+      type="search"
+      autocomplete="off"
+      spellcheck="false"
+      aria-label={t.searchLabel}
+    />
+    <!-- A placeholder cannot fade letter by letter, so the tip is drawn over the empty field. -->
+    {#if !query}
+      <span class="tip" aria-hidden="true">
+        {#each Array.from(tip) as letter, i (i)}<span transition:fade={{ duration: reduced ? 0 : 220 }}
+            >{letter}</span
+          >{/each}
+      </span>
+    {/if}
+  </div>
   <Folders {folders} {reading} busy={busy > 0} onadd={addFolder} onremove={removeFolder} />
   <p class="status" class:error={status.error} aria-live="polite">{status.text}</p>
   <div class="results">
@@ -206,7 +252,12 @@
     letter-spacing: 0.14em;
   }
 
+  .field {
+    position: relative;
+  }
+
   input {
+    display: block;
     width: 100%;
     padding: 14px 20px;
     font: inherit;
@@ -219,8 +270,17 @@
     transition: border-color 0.15s;
   }
 
-  input::placeholder {
+  .tip {
+    position: absolute;
+    top: 50%;
+    left: 21px;
+    right: 21px;
+    overflow: hidden;
+    font-size: 18px;
     color: var(--muted);
+    white-space: pre;
+    transform: translateY(-50%);
+    pointer-events: none;
   }
 
   input:focus {
