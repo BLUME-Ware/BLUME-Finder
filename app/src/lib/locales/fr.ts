@@ -3,8 +3,15 @@ import type { Messages } from "./en";
 const files = (n: number) => `${n} ${n > 1 ? "fichiers" : "fichier"}`;
 
 export const fr: Messages = {
-  searchPlaceholder:
-    "Rechercher : « contrat de location », « billets de train »…",
+  searchLabel: "Rechercher",
+  searchTips: [
+    "contrat de location",
+    "facture électricité mars",
+    "billets de train Toulouse",
+    "devis toiture",
+    "attestation de domicile",
+    "ordonnance médecin",
+  ],
   foldersLabel: "Dossiers indexés",
   addFolder: "Ajouter un dossier",
   folderChip: (name, count) => `${name} · ${files(count)}`,
