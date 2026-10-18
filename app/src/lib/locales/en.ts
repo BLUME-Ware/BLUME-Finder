@@ -9,6 +9,10 @@ const files = (n: number) => `${n} ${n === 1 ? "file" : "files"}`;
 
 export const en = {
   searchLabel: "Search",
+  consentText:
+    "Blume Finder can read your Documents, Desktop and Downloads folders to find your files by their content. Nothing leaves this computer.",
+  consentAllow: "Allow",
+  consentLater: "Not now",
   searchTips: [
     "rental contract",
     "electricity bill March",

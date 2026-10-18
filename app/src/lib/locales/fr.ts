@@ -4,6 +4,10 @@ const files = (n: number) => `${n} ${n > 1 ? "fichiers" : "fichier"}`;
 
 export const fr: Messages = {
   searchLabel: "Rechercher",
+  consentText:
+    "Blume Finder peut lire vos Documents, votre Bureau et vos Téléchargements pour retrouver vos fichiers par leur contenu. Rien ne quitte cet ordinateur.",
+  consentAllow: "Autoriser",
+  consentLater: "Plus tard",
   searchTips: [
     "contrat de location",
     "facture électricité mars",

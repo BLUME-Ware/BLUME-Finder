@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>fr</string>
+	</array>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Blume Finder reads the files in this folder to find them by their content. Nothing leaves this computer.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>Blume Finder reads the files in this folder to find them by their content. Nothing leaves this computer.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Blume Finder reads the files in this folder to find them by their content. Nothing leaves this computer.</string>
+</dict>
+</plist>

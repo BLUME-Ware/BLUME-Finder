@@ -50,6 +50,22 @@ async fn choose_folder(app: AppHandle) -> Option<String> {
         .map(|p| p.to_string_lossy().to_string())
 }
 
+/// The usual folders offered on first launch, only those that exist on this system.
+#[tauri::command]
+fn default_folders(app: AppHandle) -> Vec<String> {
+    let paths = app.path();
+    [
+        paths.document_dir(),
+        paths.desktop_dir(),
+        paths.download_dir(),
+    ]
+    .into_iter()
+    .filter_map(Result::ok)
+    .filter(|p| p.is_dir())
+    .map(|p| p.to_string_lossy().to_string())
+    .collect()
+}
+
 #[tauri::command]
 async fn list_folders(app: AppHandle) -> Result<Vec<Folder>, String> {
     let roots = open_index(&app)?.roots().map_err(|e| e.to_string())?;
@@ -153,6 +169,7 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             choose_folder,
+            default_folders,
             list_folders,
             index_folder,
             forget_folder,
