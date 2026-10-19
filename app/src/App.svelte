@@ -26,6 +26,7 @@
   let active = $derived(query.trim() !== "");
   let fieldTop: number | undefined;
   let tip = $state("");
+  let askConsent = $state(false);
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function say(text: string, error = false) {
@@ -80,6 +81,39 @@
       say(t.cannotRemove(String(e)), true);
     } finally {
       removing.delete(path);
+    }
+  }
+
+  // A refusal is kept in the web view's storage: if that storage is lost, the question is only
+  // asked again.
+  const declinedKey = "firstLaunchDeclined";
+
+  function declinedBefore() {
+    try {
+      return localStorage.getItem(declinedKey) === "1";
+    } catch {
+      return false;
+    }
+  }
+
+  async function allowDefaultFolders() {
+    askConsent = false;
+    let paths: string[];
+    try {
+      paths = await api.defaultFolders();
+    } catch (e) {
+      say(t.actionFailed(String(e)), true);
+      return;
+    }
+    for (const path of paths) await index(path);
+  }
+
+  function declineDefaultFolders() {
+    askConsent = false;
+    try {
+      localStorage.setItem(declinedKey, "1");
+    } catch {
+      // Without storage the question comes back at the next launch.
     }
   }
 
@@ -185,6 +219,7 @@
         say(t.cannotReadIndex(String(e)), true);
         return;
       }
+      askConsent = folders.length === 0 && !declinedBefore();
       runSearch();
       // Only changed files are read again. A folder removed since launch is skipped, or reading
       // it would bring it back.
@@ -201,7 +236,7 @@
   <div class="field" bind:this={box}>
     <input
       bind:this={field}
-    bind:value={query}
+      bind:value={query}
       oninput={scheduleSearch}
       onkeydown={onKeydown}
       type="search"
@@ -218,7 +253,15 @@
       </span>
     {/if}
   </div>
-  <Folders {folders} {reading} busy={busy > 0} onadd={addFolder} onremove={removeFolder} />
+  {#if askConsent}
+    <div class="consent">
+      <p>{t.consentText}</p>
+      <button type="button" class="allow" onclick={allowDefaultFolders}>{t.consentAllow}</button>
+      <button type="button" onclick={declineDefaultFolders}>{t.consentLater}</button>
+    </div>
+  {:else}
+    <Folders {folders} {reading} busy={busy > 0} onadd={addFolder} onremove={removeFolder} />
+  {/if}
   <p class="status" class:error={status.error} aria-live="polite">{status.text}</p>
   <div class="results">
     {#if noResults}
@@ -300,6 +343,33 @@
   .status.error {
     color: var(--error);
     white-space: normal;
+  }
+
+  .consent {
+    margin-top: 18px;
+    font-size: 13px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .consent p {
+    margin: 0 0 12px;
+  }
+
+  .consent button {
+    margin: 0 4px;
+    padding: 6px 16px;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .consent .allow {
+    color: #ffffff;
+    background: var(--accent);
   }
 
   .empty {
