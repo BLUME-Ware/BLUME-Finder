@@ -133,7 +133,8 @@
   async function runSearch() {
     const text = query.trim();
     const mine = ++searchNumber;
-    if (!text) {
+    // The engine ignores one-letter words, so a single letter would only report "no results".
+    if (Array.from(text).length < 2) {
       hits = [];
       noResults = "";
       return;
