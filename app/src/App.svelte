@@ -32,6 +32,9 @@
   let tip = $state("");
   let askConsent = $state(false);
   let panelOpen = $state(false);
+  let list = $state<HTMLElement>();
+  let fadeTop = $state(false);
+  let fadeBottom = $state(false);
   let statusTimer: ReturnType<typeof setTimeout> | undefined;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -135,6 +138,16 @@
     return !removing.has(path) && folders.some((folder) => folder.path === path);
   }
 
+  // Where a result lives, from its indexed folder: "Documents › Maison" rather than the full path.
+  function location(path: string) {
+    const root = folders.find(
+      (folder) => path.startsWith(folder.path) && /[\\/]/.test(path[folder.path.length] ?? ""),
+    );
+    if (!root) return path;
+    const inner = path.slice(root.path.length + 1).split(/[\\/]/).slice(0, -1);
+    return [folderName(root.path), ...inner].join(" › ");
+  }
+
   async function act(action: (path: string) => Promise<void>, path: string) {
     try {
       await action(path);
@@ -199,6 +212,19 @@
   }
 
   const onMac = document.documentElement.classList.contains("mac");
+
+  // The edges of the list fade only where rows are actually hidden: above once it is scrolled,
+  // below while more rows follow.
+  function updateFades() {
+    if (!list) return;
+    fadeTop = list.scrollTop > 0;
+    fadeBottom = list.scrollTop + list.clientHeight < list.scrollHeight - 1;
+  }
+
+  $effect(() => {
+    void [hits, showAll, partial, noResults];
+    updateFades();
+  });
 
   function closePanel() {
     panelOpen = false;
@@ -319,7 +345,13 @@
       <button type="button" onclick={declineDefaultFolders}>{t.consentLater}</button>
     </div>
   {/if}
-  <div class="results">
+  <div
+    class="results"
+    class:fade-top={fadeTop}
+    class:fade-bottom={fadeBottom}
+    bind:this={list}
+    onscroll={updateFades}
+  >
     {#if noResults}
       <p class="empty">{noResults}</p>
     {/if}
@@ -327,7 +359,12 @@
       <p class="partial">{t.partialMatch}</p>
     {/if}
     {#each showAll ? hits : hits.slice(0, 3) as hit (hit.path)}
-      <ResultCard {hit} onopen={(p) => act(api.openFile, p)} onreveal={(p) => act(api.revealFile, p)} />
+      <ResultCard
+        {hit}
+        where={location(hit.path)}
+        onopen={(p) => act(api.openFile, p)}
+        onreveal={(p) => act(api.revealFile, p)}
+      />
     {/each}
     {#if !showAll && hits.length > 3}
       <button type="button" class="more" onclick={() => (showAll = true)}>{t.showMore(hits.length - 3)}</button>
@@ -335,7 +372,7 @@
   </div>
 </main>
 
-<svelte:window onkeydown={onWindowKeydown} />
+<svelte:window onkeydown={onWindowKeydown} onresize={updateFades} />
 
 <p class="status" class:error={status.error} class:hidden={!status.shown} aria-live="polite">
   {status.text}
@@ -362,8 +399,13 @@
     padding: calc(50vh - 136.5px) 24px 48px;
   }
 
+  /* During a search the page itself stays still: only the results scroll, under the field. */
   main.active {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
     padding-top: 48px;
+    padding-bottom: 0;
   }
 
   /* The gradient spans the word only, as on the icon: dark on the left, light on the right. */
@@ -488,6 +530,26 @@
 
   .more:hover {
     color: var(--accent);
+  }
+
+  .results {
+    flex: 1;
+    min-height: 0;
+    margin-top: 12px;
+    padding: 12px 0 48px;
+    overflow-y: auto;
+  }
+
+  .results.fade-top {
+    mask-image: linear-gradient(to bottom, transparent 0, #000 40px);
+  }
+
+  .results.fade-bottom {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 48px), transparent);
+  }
+
+  .results.fade-top.fade-bottom {
+    mask-image: linear-gradient(to bottom, transparent 0, #000 40px, #000 calc(100% - 48px), transparent);
   }
 
   .partial {

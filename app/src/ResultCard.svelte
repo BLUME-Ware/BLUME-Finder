@@ -5,39 +5,38 @@
 
   interface Props {
     hit: Hit;
+    where: string;
     onopen: (path: string) => void;
     onreveal: (path: string) => void;
   }
 
-  let { hit, onopen, onreveal }: Props = $props();
-
-  const meta = $derived([size(hit.size), date(hit.mtime)].filter(Boolean).join(" · "));
+  let { hit, where, onopen, onreveal }: Props = $props();
 </script>
 
 <article>
-  <h2>{hit.name}</h2>
-  <p class="path">{hit.path} · {meta}</p>
-  {#if hit.snippet}
-    <p class="snippet">
-      {#each snippetParts(hit.snippet) as part, i (i)}
-        {#if part.match}<mark>{part.text}</mark>{:else}{part.text}{/if}
-      {/each}
-    </p>
-  {:else}
-    <p class="snippet name-only">{t.nameOnlyHit}</p>
-  {/if}
-  <div class="actions">
-    <button type="button" onclick={() => onopen(hit.path)}>{t.open}</button>
-    <button type="button" onclick={() => onreveal(hit.path)}>{t.reveal}</button>
-  </div>
+  <button type="button" class="main" title="{hit.path} · {size(hit.size)}" onclick={() => onopen(hit.path)}>
+    <span class="top">
+      <span class="name">{hit.name}</span>
+      <span class="date">{date(hit.mtime)}</span>
+    </span>
+    <span class="where">{where}</span>
+    {#if hit.snippet}
+      <span class="snippet">
+        {#each snippetParts(hit.snippet) as part, i (i)}
+          {#if part.match}<mark>{part.text}</mark>{:else}{part.text}{/if}
+        {/each}
+      </span>
+    {:else}
+      <span class="snippet name-only">{t.nameOnlyHit}</span>
+    {/if}
+  </button>
+  <button type="button" class="reveal" onclick={() => onreveal(hit.path)}>{t.reveal}</button>
 </article>
 
 <style>
   article {
-    margin-bottom: 10px;
-    padding: 16px 20px;
-    background: var(--surface);
-    border-radius: 14px;
+    position: relative;
+    margin-bottom: 6px;
     animation: appear 0.2s ease-out;
   }
 
@@ -47,24 +46,65 @@
     }
   }
 
-  h2 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-    overflow-wrap: anywhere;
+  /* The whole row opens the file; showing it in its folder stays one hover away. */
+  .main {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    font: inherit;
+    color: var(--text);
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s;
   }
 
-  .path {
-    margin: 2px 0 0;
+  .main:hover,
+  .main:focus-visible {
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+    outline: none;
+  }
+
+  .top {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+  }
+
+  .name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .date {
+    flex: none;
     font-size: 12px;
     color: var(--muted);
-    overflow-wrap: anywhere;
+  }
+
+  .where,
+  .snippet {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .where {
+    font-size: 12px;
+    color: var(--muted);
   }
 
   .snippet {
-    margin: 10px 0 0;
-    font-size: 14px;
-    overflow-wrap: anywhere;
+    margin-top: 4px;
+    font-size: 13px;
   }
 
   .name-only {
@@ -79,25 +119,30 @@
     border-radius: 3px;
   }
 
-  .actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-  }
-
-  button {
-    padding: 4px 12px;
+  .reveal {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    padding: 2px 8px;
     font: inherit;
-    font-size: 13px;
-    color: var(--text);
+    font-size: 12px;
+    color: var(--muted);
     background: var(--background);
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: color 0.15s;
+    opacity: 0;
+    transition:
+      opacity 0.15s,
+      color 0.15s;
   }
 
-  button:hover {
+  article:hover .reveal,
+  .reveal:focus-visible {
+    opacity: 1;
+  }
+
+  .reveal:hover {
     color: var(--accent);
   }
 </style>
