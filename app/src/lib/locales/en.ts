@@ -32,7 +32,26 @@ export const en = {
   updating: (seen: number) => `Updating the index… ${files(seen)}`,
   indexReady: (folders: number, count: number) =>
     `Ready · ${folders} ${folders === 1 ? "folder" : "folders"}, ${files(count)}`,
-  menuFolders: "Indexed Folders…",
+  menu: {
+    about: (app: string) => `About ${app}`,
+    folders: "Indexed Folders…",
+    services: "Services",
+    hide: (app: string) => `Hide ${app}`,
+    hideOthers: "Hide Others",
+    showAll: "Show All",
+    quit: (app: string) => `Quit ${app}`,
+    edit: "Edit",
+    undo: "Undo",
+    redo: "Redo",
+    cut: "Cut",
+    copy: "Copy",
+    paste: "Paste",
+    selectAll: "Select All",
+    window: "Window",
+    minimize: "Minimize",
+    zoom: "Zoom",
+    close: "Close Window",
+  },
   close: "Close",
   ready: (name: string, s: Summary) => {
     let text = `"${name}" is ready: ${files(s.seen)}`;

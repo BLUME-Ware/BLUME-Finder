@@ -27,7 +27,26 @@ export const fr: Messages = {
   updating: (seen) => `Mise à jour de l'index… ${files(seen)}`,
   indexReady: (folders, count) =>
     `Prêt · ${folders} ${folders > 1 ? "dossiers" : "dossier"}, ${files(count)}`,
-  menuFolders: "Dossiers indexés…",
+  menu: {
+    about: (app) => `À propos de ${app}`,
+    folders: "Dossiers indexés…",
+    services: "Services",
+    hide: (app) => `Masquer ${app}`,
+    hideOthers: "Masquer les autres",
+    showAll: "Tout afficher",
+    quit: (app) => `Quitter ${app}`,
+    edit: "Édition",
+    undo: "Annuler",
+    redo: "Rétablir",
+    cut: "Couper",
+    copy: "Copier",
+    paste: "Coller",
+    selectAll: "Tout sélectionner",
+    window: "Fenêtre",
+    minimize: "Placer dans le Dock",
+    zoom: "Zoom",
+    close: "Fermer la fenêtre",
+  },
   close: "Fermer",
   ready: (name, s) => {
     let text = `« ${name} » est prêt : ${files(s.seen)}`;
