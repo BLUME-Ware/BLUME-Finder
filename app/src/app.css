@@ -5,6 +5,8 @@
   --muted: #6e6e73;
   --border: #e3e3e6;
   --accent: #0071e3;
+  --title-from: #0040c4;
+  --title-to: #1aa9e6;
   --highlight: #fff1b8;
   --error: #a3332b;
   color-scheme: light dark;
@@ -18,6 +20,8 @@
     --muted: #98989d;
     --border: #2c2c2e;
     --accent: #2997ff;
+    --title-from: #2f7bff;
+    --title-to: #66e8fa;
     --highlight: #5a4a12;
     --error: #ff8b80;
   }
