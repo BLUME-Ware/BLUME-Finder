@@ -23,7 +23,12 @@ export const fr: Messages = {
   removeFolderTitle: "Retirer ce dossier de l'index (les fichiers ne sont pas touchés)",
   removeFolderLabel: (name) => `Retirer ${name} de l'index`,
   folderBeingRead: "Ce dossier est en cours de lecture",
-  progress: (seen, current) => `Lecture en cours… ${files(seen)} vus. ${current}`,
+  updatingStart: "Mise à jour de l'index…",
+  updating: (seen) => `Mise à jour de l'index… ${files(seen)}`,
+  indexReady: (folders, count) =>
+    `Prêt · ${folders} ${folders > 1 ? "dossiers" : "dossier"}, ${files(count)}`,
+  menuFolders: "Dossiers indexés…",
+  close: "Fermer",
   ready: (name, s) => {
     let text = `« ${name} » est prêt : ${files(s.seen)}`;
     if (s.changed) {
