@@ -3,7 +3,7 @@
   import { SvelteSet } from "svelte/reactivity";
   import { fade } from "svelte/transition";
   import * as api from "./lib/api";
-  import { shortName } from "./lib/format";
+  import { folderName, setKnownFolders, shortName } from "./lib/format";
   import { t } from "./lib/i18n";
   import Folders from "./Folders.svelte";
   import ResultCard from "./ResultCard.svelte";
@@ -49,7 +49,7 @@
       await loadFolders();
       summarize(path, report);
     } catch (e) {
-      say(t.cannotRead(shortName(path), String(e)), true);
+      say(t.cannotRead(folderName(path), String(e)), true);
     } finally {
       reading.delete(path);
       busy -= 1;
@@ -58,7 +58,7 @@
 
   function summarize(path: string, report: api.Report) {
     say(
-      t.ready(shortName(path), {
+      t.ready(folderName(path), {
         seen: report.seen,
         read: Math.max(report.indexed - report.name_only, 0),
         nameOnly: report.name_only,
@@ -79,7 +79,7 @@
     try {
       await api.forgetFolder(path);
       await loadFolders();
-      say(t.removed(shortName(path)));
+      say(t.removed(folderName(path)));
       runSearch();
     } catch (e) {
       say(t.cannotRemove(String(e)), true);
@@ -102,14 +102,15 @@
 
   async function allowDefaultFolders() {
     askConsent = false;
-    let paths: string[];
+    let known: api.KnownFolder[];
     try {
-      paths = await api.defaultFolders();
+      known = await api.defaultFolders();
     } catch (e) {
       say(t.actionFailed(String(e)), true);
       return;
     }
-    for (const path of paths) await index(path);
+    setKnownFolders(known);
+    for (const folder of known) await index(folder.path);
   }
 
   function declineDefaultFolders() {
@@ -221,6 +222,11 @@
     api.onProgress((p) => say(t.progress(p.seen, shortName(p.current))));
     field.focus();
     (async () => {
+      try {
+        setKnownFolders(await api.defaultFolders());
+      } catch {
+        // The folders then keep the names they have on disk.
+      }
       try {
         await loadFolders();
       } catch (e) {

@@ -50,19 +50,30 @@ async fn choose_folder(app: AppHandle) -> Option<String> {
         .map(|p| p.to_string_lossy().to_string())
 }
 
-/// The usual folders offered on first launch, only those that exist on this system.
+#[derive(Serialize)]
+struct KnownFolder {
+    kind: &'static str,
+    path: String,
+}
+
+/// The usual folders offered on first launch, only those that exist on this system. Their paths
+/// are canonical, like the indexed folders, so the interface can show their translated names.
 #[tauri::command]
-fn default_folders(app: AppHandle) -> Vec<String> {
+fn default_folders(app: AppHandle) -> Vec<KnownFolder> {
     let paths = app.path();
     [
-        paths.document_dir(),
-        paths.desktop_dir(),
-        paths.download_dir(),
+        ("documents", paths.document_dir()),
+        ("desktop", paths.desktop_dir()),
+        ("downloads", paths.download_dir()),
     ]
     .into_iter()
-    .filter_map(Result::ok)
-    .filter(|p| p.is_dir())
-    .map(|p| p.to_string_lossy().to_string())
+    .filter_map(|(kind, dir)| {
+        let path = dir.ok()?.canonicalize().ok()?;
+        path.is_dir().then(|| KnownFolder {
+            kind,
+            path: path.to_string_lossy().to_string(),
+        })
+    })
     .collect()
 }
 

@@ -22,6 +22,7 @@ export const en = {
     "doctor's prescription",
   ],
   foldersLabel: "Indexed folders",
+  knownFolders: { documents: "Documents", desktop: "Desktop", downloads: "Downloads" },
   addFolder: "Add a folder",
   folderChip: (name: string, count: number) => `${name} · ${files(count)}`,
   removeFolderTitle: "Remove this folder from the index (the files are not touched)",

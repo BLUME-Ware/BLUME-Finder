@@ -17,6 +17,7 @@ export const fr: Messages = {
     "ordonnance médecin",
   ],
   foldersLabel: "Dossiers indexés",
+  knownFolders: { documents: "Documents", desktop: "Bureau", downloads: "Téléchargements" },
   addFolder: "Ajouter un dossier",
   folderChip: (name, count) => `${name} · ${files(count)}`,
   removeFolderTitle: "Retirer ce dossier de l'index (les fichiers ne sont pas touchés)",
