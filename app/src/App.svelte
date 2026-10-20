@@ -34,8 +34,10 @@
     status = { text, error };
   }
 
+  // The offer comes back whenever no folder is left, unless it was declined.
   async function loadFolders() {
     folders = await api.listFolders();
+    askConsent = folders.length === 0 && !declinedBefore();
   }
 
   async function index(path: string) {
@@ -222,7 +224,6 @@
         say(t.cannotReadIndex(String(e)), true);
         return;
       }
-      askConsent = folders.length === 0 && !declinedBefore();
       runSearch();
       // Only changed files are read again. A folder removed since launch is skipped, or reading
       // it would bring it back.
