@@ -300,12 +300,17 @@
     padding-top: 48px;
   }
 
+  /* The gradient spans the word only, as on the icon: dark on the left, light on the right. */
   h1 {
-    margin: 0 0 24px;
-    text-align: center;
+    width: fit-content;
+    margin: 0 auto 24px;
     font-size: 56px;
     font-weight: 600;
     letter-spacing: 0.14em;
+    color: transparent;
+    background: linear-gradient(90deg, var(--title-from), var(--title-to));
+    -webkit-background-clip: text;
+    background-clip: text;
   }
 
   .field {
