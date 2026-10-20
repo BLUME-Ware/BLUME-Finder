@@ -74,6 +74,8 @@ These checks also require [cargo-deny](https://github.com/EmbarkStudios/cargo-de
 
 ## Not included yet
 
+The full roadmap, the guarantees expected from the next versions and where the project stands are in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
 Search by meaning, finding a document from an idea rather than its exact words, is planned as version 0.2.0, with a model running on the computer. The Windows release is planned as version 0.3.0. OCR for scans and images, and signed releases, are directions, not commitments.
 
 ## License
@@ -127,6 +129,8 @@ Prérequis : [Rust](https://rustup.rs) et [Node.js](https://nodejs.org) 22 ou 24
 Chaque modification passe les mêmes contrôles en local et en intégration continue : formatage, clippy sans avertissement, tests, audit des dépendances, vérification des types et construction de l'interface, et contrôle d'absence de réseau. Les commandes sont celles de la section « Development » ci-dessus.
 
 ## Pas encore inclus
+
+La feuille de route complète, les garanties attendues des prochaines versions et l'état du projet sont décrits, en anglais, dans [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 La recherche par le sens, qui retrouve un document à partir d'une idée plutôt que de ses mots exacts, est prévue pour la version 0.2.0, avec un modèle qui fonctionne sur l'ordinateur. La version pour Windows est prévue en 0.3.0. L'OCR pour les scans et les images et les versions signées sont des orientations, pas des engagements.
 
