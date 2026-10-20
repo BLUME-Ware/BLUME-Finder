@@ -385,8 +385,12 @@ impl Index {
 
     fn run(&self, q: &text::Query, op: &str, limit: usize) -> Result<Vec<Hit>> {
         let expr = text::fts_expr(q, op);
+        // Files whose text was read come first: otherwise thousands of files found by their name
+        // alone, such as sound samples, bury the documents. The name is in both FTS columns, so
+        // only the stored text tells them apart.
         let mut st = self.conn.prepare(
-            "SELECT rowid, bm25(fts, 8.0, 1.0) AS s FROM fts WHERE fts MATCH ?1 ORDER BY s LIMIT ?2",
+            "SELECT rowid, bm25(fts, 8.0, 1.0) AS s FROM fts WHERE fts MATCH ?1
+             ORDER BY rowid IN (SELECT file_id FROM texts) DESC, s LIMIT ?2",
         )?;
         let ranked: Vec<(i64, f64)> = st
             .query_map(params![expr, limit as i64], |r| Ok((r.get(0)?, r.get(1)?)))?
