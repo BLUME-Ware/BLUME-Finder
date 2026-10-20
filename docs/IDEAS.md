@@ -27,7 +27,6 @@ until after 3 November 2026. Nothing here is a commitment.
 - Reference corpus of small documents with their expected text, tested on every change.
 - Accessibility pass: full keyboard navigation, VoiceOver labels, contrast in both themes.
 - Branch protection on `main`: merge only with green CI.
-- Release checklist in `docs/`.
 - SHA-256 checksums and GitHub build provenance attestations on releases.
 - Software bill of materials (SBOM) published with each release.
 - Performance budgets: startup time, indexing throughput, memory use.
