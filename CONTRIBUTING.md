@@ -9,7 +9,8 @@ own branch, with a test for any engine logic, and open a pull request. It must p
 Changes that add a dependency, a permission or any network access are declined by default. The
 reasons behind the project rules are recorded in [`docs/adr/`](docs/adr/). Security issues are
 reported privately, as described in [`SECURITY.md`](SECURITY.md). Where the project goes and where
-it stands is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
+it stands is in [`docs/ROADMAP.md`](docs/ROADMAP.md); how changes and versions are prepared and
+published is in [`docs/RELEASING.md`](docs/RELEASING.md).
 
 ## Project rules
 
