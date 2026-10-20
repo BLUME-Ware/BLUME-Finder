@@ -22,6 +22,22 @@
   function onKeydown(event: KeyboardEvent) {
     if (event.key === "Escape") onclose();
   }
+
+  // Tab stays inside the panel while it is open, as in a system dialog.
+  function keepFocus(event: KeyboardEvent) {
+    if (event.key !== "Tab") return;
+    const items = [...panel.querySelectorAll<HTMLElement>("button:not(:disabled)")];
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+      last.focus();
+      event.preventDefault();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      first.focus();
+      event.preventDefault();
+    }
+  }
 </script>
 
 <svelte:window onkeydown={onKeydown} />
@@ -37,6 +53,7 @@
     aria-modal="true"
     aria-label={t.foldersLabel}
     tabindex="-1"
+    onkeydown={keepFocus}
     onclick={(event) => event.stopPropagation()}
   >
     <h2>{t.foldersLabel}</h2>
