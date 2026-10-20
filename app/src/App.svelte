@@ -2,10 +2,10 @@
   import { onMount } from "svelte";
   import { SvelteSet } from "svelte/reactivity";
   import { fade } from "svelte/transition";
-  import { Menu, MenuItem, PredefinedMenuItem, Submenu } from "@tauri-apps/api/menu";
   import * as api from "./lib/api";
   import { folderName, setKnownFolders } from "./lib/format";
   import { t } from "./lib/i18n";
+  import { setMacMenu } from "./lib/menu";
   import FolderPanel from "./FolderPanel.svelte";
   import ResultCard from "./ResultCard.svelte";
 
@@ -193,24 +193,6 @@
 
   // The folders live in the application menu on macOS, like settings in other Mac applications.
   // Elsewhere the same shortcut opens them, without adding a menu bar to the window.
-  async function addFoldersMenuItem() {
-    const menu = await Menu.default();
-    const [appMenu] = await menu.items();
-    if (!(appMenu instanceof Submenu)) return;
-    await appMenu.insert(
-      [
-        await PredefinedMenuItem.new({ item: "Separator" }),
-        await MenuItem.new({
-          text: t.menuFolders,
-          accelerator: "CmdOrCtrl+,",
-          action: () => (panelOpen = true),
-        }),
-      ],
-      1,
-    );
-    await menu.setAsAppMenu();
-  }
-
   const onMac = document.documentElement.classList.contains("mac");
 
   // The edges of the list fade only where rows are actually hidden: above once it is scrolled,
@@ -286,7 +268,7 @@
 
   onMount(() => {
     api.onProgress((p) => say(t.updating(p.seen)));
-    if (onMac) addFoldersMenuItem().catch(() => {});
+    if (onMac) setMacMenu(() => (panelOpen = true)).catch(() => {});
     field.focus();
     (async () => {
       try {
