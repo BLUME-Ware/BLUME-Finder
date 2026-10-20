@@ -17,6 +17,9 @@ until after 3 November 2026. Nothing here is a commitment.
 - macOS signing and notarization, if a free route opens (for example Apple's fee waiver for registered non-profit organizations).
 - Translucent window with the desktop blurred behind it, as in Finder; needs a transparent window and Tauri's `macOSPrivateApi`, and behaves differently on Windows and Linux.
 - Search field fixed at the top while results scroll beneath it, with a translucent, blurred backdrop (CSS only).
+- Watching the indexed folders while the app is open, so a new file is found at once; part of background indexing in 0.2.0 (ADR 0013).
+- Mail attachments saved by the user are found; attachments left inside the mail application are not, since its data is never read. A clear hint about it, or a guided way to save them.
+- Upgrade `zip` to 9 and remove the RUSTSEC-2026-0367 to 0369 exceptions (ADR 0011).
 - An easier update path without any network code in the app: a BLUME-Ware Homebrew tap (`brew upgrade`), or a link that opens the releases page in the browser. An in-app updater is excluded by rule 2.
 
 ## Engineering practices

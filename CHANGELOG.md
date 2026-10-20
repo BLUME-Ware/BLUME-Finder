@@ -21,7 +21,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A local SQLite index, re-read at launch for changed files only, with removed text erased from
   the index file.
 - On first launch, an offer to index the Documents, Desktop and Downloads folders, which can be
-  declined.
+  declined, shown again whenever no folder is left.
+- The three best results shown first, the others one click away.
 - Folder management: adding and removing indexed folders, without overlap between a folder and
   its subfolders.
 - Opening a result, or showing it in its folder.

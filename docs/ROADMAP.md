@@ -62,7 +62,13 @@ directions, not commitments.
 ## Where the project stands
 
 On 20 October 2026: every task of the 0.1.0 plan is done and its checks are green. Since the scope
-freeze, the maintainer approved interface and first-launch additions, all merged and covered by
-the last full install test. Remaining before release: the first-launch offer shown again when no
-folder is left, content matches ranked before name-only matches, no fallback to "any of the words",
-a last disk image and install test, then the release itself.
+freeze, the maintainer approved interface, first-launch and search additions: the offer of the
+usual folders, examples typed in the search field, the three best results first, documents ranked
+before name-only files, and a notice when only some of the words are found. All are merged, and
+the disk image on the draft release passed a full first-launch test on macOS 15.7. Remaining: the
+release itself on 3 November 2026.
+
+Lessons from testing on a real computer, for the next versions: a natural phrase such as "documents
+about the army" needs search by meaning, and documents received by mail stay in the mail
+application's data, which Blume does not read; files that do not mention their subject are only
+linked to it by their origin, which is the purpose of the context graph.
