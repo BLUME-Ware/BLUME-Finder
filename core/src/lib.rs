@@ -24,6 +24,14 @@ pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 /// Version of the index format, stored in the SQLite `user_version` header field.
 const SCHEMA_VERSION: i64 = 1;
 
+/// Result of a search: `every_word` is false when no file contained all the words of the query,
+/// so the hits contain only some of them.
+#[derive(Debug, Clone, Serialize)]
+pub struct Found {
+    pub hits: Vec<Hit>,
+    pub every_word: bool,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Hit {
     pub path: String,
@@ -372,15 +380,29 @@ impl Index {
     /// Looks first for the files that contain all the significant words of the query; if
     /// there are none, for those that contain at least one.
     pub fn search(&self, query: &str, limit: usize) -> Result<Vec<Hit>> {
+        Ok(self.find(query, limit)?.hits)
+    }
+
+    /// Same as `search`, telling whether the files found contain every word of the query.
+    pub fn find(&self, query: &str, limit: usize) -> Result<Found> {
         let q = text::parse_query(&self.lang, query);
         if q.terms.is_empty() {
-            return Ok(vec![]);
+            return Ok(Found {
+                hits: vec![],
+                every_word: true,
+            });
         }
-        let mut hits = self.run(&q, "AND", limit)?;
+        let hits = self.run(&q, "AND", limit)?;
         if hits.is_empty() && q.terms.len() > 1 {
-            hits = self.run(&q, "OR", limit)?;
+            return Ok(Found {
+                hits: self.run(&q, "OR", limit)?,
+                every_word: false,
+            });
         }
-        Ok(hits)
+        Ok(Found {
+            hits,
+            every_word: true,
+        })
     }
 
     fn run(&self, q: &text::Query, op: &str, limit: usize) -> Result<Vec<Hit>> {

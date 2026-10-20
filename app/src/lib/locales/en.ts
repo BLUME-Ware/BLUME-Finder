@@ -44,6 +44,7 @@ export const en = {
   cannotReadIndex: (error: string) => `Cannot read the index: ${error}`,
   noResults: (query: string) =>
     `No results for "${query}". Scans and images are found by their name only.`,
+  partialMatch: "No file contains every word; these contain some of them.",
   showMore: (n: number) => (n === 1 ? "Show 1 more result" : `Show ${n} more results`),
   searchFailed: (error: string) => `Search failed: ${error}`,
   nameOnlyHit: "Found by its name (the content of this type of file is not read).",

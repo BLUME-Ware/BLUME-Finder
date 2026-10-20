@@ -12,6 +12,7 @@
   let folders = $state<api.Folder[]>([]);
   let hits = $state<api.Hit[]>([]);
   let showAll = $state(false);
+  let partial = $state(false);
   let noResults = $state("");
   let status = $state({ text: "", error: false });
   let busy = $state(0);
@@ -139,15 +140,17 @@
     // The engine ignores one-letter words, so a single letter would only report "no results".
     if (Array.from(text).length < 2) {
       hits = [];
+      partial = false;
       noResults = "";
       return;
     }
     try {
       const found = await api.search(text);
       if (mine !== searchNumber) return;
-      hits = found;
+      hits = found.hits;
+      partial = !found.every_word && found.hits.length > 0;
       showAll = false;
-      noResults = found.length ? "" : t.noResults(text);
+      noResults = found.hits.length ? "" : t.noResults(text);
     } catch (e) {
       if (mine === searchNumber) say(t.searchFailed(String(e)), true);
     }
@@ -270,6 +273,9 @@
   <div class="results">
     {#if noResults}
       <p class="empty">{noResults}</p>
+    {/if}
+    {#if partial}
+      <p class="partial">{t.partialMatch}</p>
     {/if}
     {#each showAll ? hits : hits.slice(0, 3) as hit (hit.path)}
       <ResultCard {hit} onopen={(p) => act(api.openFile, p)} onreveal={(p) => act(api.revealFile, p)} />
@@ -394,6 +400,13 @@
 
   .more:hover {
     color: var(--accent);
+  }
+
+  .partial {
+    margin: 0 4px 12px;
+    font-size: 13px;
+    text-align: center;
+    color: var(--muted);
   }
 
   .empty {
