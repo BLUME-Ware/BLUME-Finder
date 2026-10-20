@@ -15,7 +15,6 @@ until after 3 November 2026. Nothing here is a commitment.
 - Honoring the Windows hidden attribute; hidden files and folders are recognized by their leading dot only.
 - Linux release. The code is kept portable and tested in CI; only packaging and release are deferred. The Windows release is version 0.3.0 (ADR 0013).
 - macOS signing and notarization, if a free route opens (for example Apple's fee waiver for registered non-profit organizations).
-- Search field fixed at the top while results scroll beneath it, with a translucent, blurred backdrop (CSS only).
 - A visible way to manage folders on Windows and Linux, where only Ctrl+comma opens them (the menu entry is macOS only, to keep a menu bar out of the window).
 - Watching the indexed folders while the app is open, so a new file is found at once; part of background indexing in 0.2.0 (ADR 0013).
 - Mail attachments saved by the user are found; attachments left inside the mail application are not, since its data is never read. A clear hint about it, or a guided way to save them.
