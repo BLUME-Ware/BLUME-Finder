@@ -39,6 +39,7 @@ export const fr: Messages = {
   cannotReadIndex: (error) => `Impossible de lire l'index : ${error}`,
   noResults: (query) =>
     `Aucun résultat pour « ${query} ». Les scans et les images ne sont trouvés que par leur nom.`,
+  showMore: (n) => (n === 1 ? "Voir 1 autre résultat" : `Voir les ${n} autres résultats`),
   searchFailed: (error) => `Recherche impossible : ${error}`,
   nameOnlyHit: "Trouvé par son nom (le contenu de ce type de fichier n'est pas lu).",
   open: "Ouvrir",

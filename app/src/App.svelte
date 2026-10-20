@@ -11,6 +11,7 @@
   let query = $state("");
   let folders = $state<api.Folder[]>([]);
   let hits = $state<api.Hit[]>([]);
+  let showAll = $state(false);
   let noResults = $state("");
   let status = $state({ text: "", error: false });
   let busy = $state(0);
@@ -143,6 +144,7 @@
       const found = await api.search(text);
       if (mine !== searchNumber) return;
       hits = found;
+      showAll = false;
       noResults = found.length ? "" : t.noResults(text);
     } catch (e) {
       if (mine === searchNumber) say(t.searchFailed(String(e)), true);
@@ -268,9 +270,12 @@
     {#if noResults}
       <p class="empty">{noResults}</p>
     {/if}
-    {#each hits as hit (hit.path)}
+    {#each showAll ? hits : hits.slice(0, 3) as hit (hit.path)}
       <ResultCard {hit} onopen={(p) => act(api.openFile, p)} onreveal={(p) => act(api.revealFile, p)} />
     {/each}
+    {#if !showAll && hits.length > 3}
+      <button type="button" class="more" onclick={() => (showAll = true)}>{t.showMore(hits.length - 3)}</button>
+    {/if}
   </div>
 </main>
 
@@ -371,6 +376,23 @@
   .consent .allow {
     color: #ffffff;
     background: var(--accent);
+  }
+
+  .more {
+    display: block;
+    margin: 4px auto 0;
+    padding: 4px 8px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .more:hover {
+    color: var(--accent);
   }
 
   .empty {
