@@ -2,10 +2,11 @@
   import { onMount } from "svelte";
   import { SvelteSet } from "svelte/reactivity";
   import { fade } from "svelte/transition";
+  import { Menu, MenuItem, PredefinedMenuItem, Submenu } from "@tauri-apps/api/menu";
   import * as api from "./lib/api";
-  import { folderName, setKnownFolders, shortName } from "./lib/format";
+  import { folderName, setKnownFolders } from "./lib/format";
   import { t } from "./lib/i18n";
-  import Folders from "./Folders.svelte";
+  import FolderPanel from "./FolderPanel.svelte";
   import ResultCard from "./ResultCard.svelte";
 
   let query = $state("");
@@ -14,7 +15,8 @@
   let showAll = $state(false);
   let partial = $state(false);
   let noResults = $state("");
-  let status = $state({ text: "", error: false });
+  // The footer is there from the first frame at launch, then fades once the index is ready.
+  let status = $state({ text: t.updatingStart, error: false, shown: true });
   let busy = $state(0);
   // Both are filled before any await, so a removal and a reading can never start on the same
   // folder at once.
@@ -29,10 +31,16 @@
   let fieldTop: number | undefined;
   let tip = $state("");
   let askConsent = $state(false);
+  let panelOpen = $state(false);
+  let statusTimer: ReturnType<typeof setTimeout> | undefined;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Messages fade after a few seconds so the window keeps only the search; errors stay until the
+  // next message.
   function say(text: string, error = false) {
-    status = { text, error };
+    status = { text, error, shown: true };
+    clearTimeout(statusTimer);
+    if (!error) statusTimer = setTimeout(() => (status.shown = false), 4000);
   }
 
   // The offer comes back whenever no folder is left, unless it was declined.
@@ -41,13 +49,14 @@
     askConsent = folders.length === 0 && !declinedBefore();
   }
 
-  async function index(path: string) {
+  async function index(path: string, report = true) {
     busy += 1;
     reading.add(path);
     try {
-      const report = await api.indexFolder(path);
+      const summary = await api.indexFolder(path);
       await loadFolders();
-      summarize(path, report);
+      if (report) summarize(path, summary);
+      else runSearch();
     } catch (e) {
       say(t.cannotRead(folderName(path), String(e)), true);
     } finally {
@@ -169,6 +178,37 @@
     }
   }
 
+  // The folders live in the application menu on macOS, like settings in other Mac applications.
+  // Elsewhere the same shortcut opens them, without adding a menu bar to the window.
+  async function addFoldersMenuItem() {
+    const menu = await Menu.default();
+    const [appMenu] = await menu.items();
+    if (!(appMenu instanceof Submenu)) return;
+    await appMenu.insert(
+      [
+        await PredefinedMenuItem.new({ item: "Separator" }),
+        await MenuItem.new({
+          text: t.menuFolders,
+          accelerator: "CmdOrCtrl+,",
+          action: () => (panelOpen = true),
+        }),
+      ],
+      1,
+    );
+    await menu.setAsAppMenu();
+  }
+
+  const onMac = document.documentElement.classList.contains("mac");
+
+  function closePanel() {
+    panelOpen = false;
+    field.focus();
+  }
+
+  function onWindowKeydown(event: KeyboardEvent) {
+    if (!onMac && event.ctrlKey && event.key === ",") panelOpen = true;
+  }
+
   // The position is set by the layout alone, so it follows a window resize in the same frame. Only
   // the switch between centered and raised is animated, from where the field was to where it is.
   $effect.pre(() => {
@@ -219,7 +259,8 @@
   }
 
   onMount(() => {
-    api.onProgress((p) => say(t.progress(p.seen, shortName(p.current))));
+    api.onProgress((p) => say(t.updating(p.seen)));
+    if (onMac) addFoldersMenuItem().catch(() => {});
     field.focus();
     (async () => {
       try {
@@ -233,11 +274,16 @@
         say(t.cannotReadIndex(String(e)), true);
         return;
       }
+      if (!folders.length) status.shown = false;
       runSearch();
       // Only changed files are read again. A folder removed since launch is skipped, or reading
       // it would bring it back.
       for (const path of folders.map((folder) => folder.path)) {
-        if (stillListed(path)) await index(path);
+        if (stillListed(path)) await index(path, false);
+      }
+      if (folders.length) {
+        const total = folders.reduce((sum, folder) => sum + folder.files, 0);
+        say(t.indexReady(folders.length, total));
       }
     })();
     return cycleTips();
@@ -272,10 +318,7 @@
       <button type="button" class="allow" onclick={allowDefaultFolders}>{t.consentAllow}</button>
       <button type="button" onclick={declineDefaultFolders}>{t.consentLater}</button>
     </div>
-  {:else}
-    <Folders {folders} {reading} busy={busy > 0} onadd={addFolder} onremove={removeFolder} />
   {/if}
-  <p class="status" class:error={status.error} aria-live="polite">{status.text}</p>
   <div class="results">
     {#if noResults}
       <p class="empty">{noResults}</p>
@@ -292,6 +335,23 @@
   </div>
 </main>
 
+<svelte:window onkeydown={onWindowKeydown} />
+
+<p class="status" class:error={status.error} class:hidden={!status.shown} aria-live="polite">
+  {status.text}
+</p>
+
+{#if panelOpen}
+  <FolderPanel
+    {folders}
+    {reading}
+    busy={busy > 0}
+    onadd={addFolder}
+    onremove={removeFolder}
+    onclose={closePanel}
+  />
+{/if}
+
 <style>
   main {
     width: 100%;
@@ -299,7 +359,7 @@
     margin: 0 auto;
     /* 136.5px is the height of the title and its margin plus half the search field, so the middle
        of the field sits at the vertical center of the window. */
-    padding: calc(50vh - 136.5px) 24px 32px;
+    padding: calc(50vh - 136.5px) 24px 48px;
   }
 
   main.active {
@@ -355,13 +415,30 @@
   }
 
   .status {
-    margin: 14px 4px 12px;
-    font-size: 13px;
+    position: fixed;
+    right: 0;
+    bottom: 12px;
+    left: 0;
+    margin: 0;
+    padding: 0 24px;
+    font-size: 12px;
     text-align: center;
     color: var(--muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+
+  .status.hidden {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status {
+      transition: none;
+    }
   }
 
   .status.error {

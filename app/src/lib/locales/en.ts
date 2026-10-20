@@ -28,7 +28,12 @@ export const en = {
   removeFolderTitle: "Remove this folder from the index (the files are not touched)",
   removeFolderLabel: (name: string) => `Remove ${name} from the index`,
   folderBeingRead: "This folder is being read",
-  progress: (seen: number, current: string) => `Reading… ${files(seen)} seen. ${current}`,
+  updatingStart: "Updating the index…",
+  updating: (seen: number) => `Updating the index… ${files(seen)}`,
+  indexReady: (folders: number, count: number) =>
+    `Ready · ${folders} ${folders === 1 ? "folder" : "folders"}, ${files(count)}`,
+  menuFolders: "Indexed Folders…",
+  close: "Close",
   ready: (name: string, s: Summary) => {
     let text = `"${name}" is ready: ${files(s.seen)}`;
     if (s.changed) {

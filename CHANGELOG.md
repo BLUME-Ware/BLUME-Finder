@@ -23,8 +23,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - On first launch, an offer to index the Documents, Desktop and Downloads folders, which can be
   declined, shown again whenever no folder is left.
 - The three best results shown first, the others one click away.
-- Folder management: adding and removing indexed folders, without overlap between a folder and
-  its subfolders.
+- Folder management in the application menu (Indexed Folders, Command-comma): adding and removing
+  indexed folders, without overlap between a folder and its subfolders.
 - Opening a result, or showing it in its folder.
 - Read-only access to files, no network access, and hidden and secret files never indexed.
 - A translucent window on macOS, with the desktop blurred behind it.
