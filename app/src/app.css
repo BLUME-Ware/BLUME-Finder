@@ -23,6 +23,22 @@
   }
 }
 
+:root.mac {
+  --surface: rgba(255, 255, 255, 0.72);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root.mac {
+    --surface: rgba(44, 44, 46, 0.72);
+  }
+}
+
+/* The system blur shows through the window: only the controls keep a backing. */
+:root.mac,
+:root.mac body {
+  background: transparent;
+}
+
 * {
   box-sizing: border-box;
 }
