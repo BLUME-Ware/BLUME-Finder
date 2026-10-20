@@ -16,7 +16,7 @@
   let partial = $state(false);
   let noResults = $state("");
   // The footer is there from the first frame at launch, then fades once the index is ready.
-  let status = $state({ text: t.updatingStart, error: false, shown: true });
+  let status = $state({ text: t.updatingStart, error: false, progress: true, shown: true });
   let busy = $state(0);
   // Both are filled before any await, so a removal and a reading can never start on the same
   // folder at once.
@@ -38,21 +38,29 @@
   let statusTimer: ReturnType<typeof setTimeout> | undefined;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Messages fade after a few seconds so the window keeps only the search; errors stay until the
-  // next message.
-  function say(text: string, error = false) {
-    status = { text, error, shown: true };
+  // Messages fade after a few seconds so the window keeps only the search. Errors stay until the
+  // next message, and progress lines never cover an error that is still shown.
+  function say(text: string, kind: "info" | "progress" | "error" = "info") {
+    if (kind === "progress" && status.error && status.shown) return;
+    status = { text, error: kind === "error", progress: kind === "progress", shown: true };
     clearTimeout(statusTimer);
-    if (!error) statusTimer = setTimeout(() => (status.shown = false), 4000);
+    if (kind !== "error") statusTimer = setTimeout(() => (status.shown = false), 4000);
   }
+
+  // Answers can arrive out of order when an indexing and a removal overlap; only the latest
+  // request may set the list, or a removed folder could come back.
+  let foldersRequest = 0;
 
   // The offer comes back whenever no folder is left, unless it was declined.
   async function loadFolders() {
-    folders = await api.listFolders();
+    const mine = ++foldersRequest;
+    const listed = await api.listFolders();
+    if (mine !== foldersRequest) return;
+    folders = listed;
     askConsent = folders.length === 0 && !declinedBefore();
   }
 
-  async function index(path: string, report = true) {
+  async function index(path: string, report = true): Promise<boolean> {
     busy += 1;
     reading.add(path);
     try {
@@ -60,8 +68,10 @@
       await loadFolders();
       if (report) summarize(path, summary);
       else runSearch();
+      return true;
     } catch (e) {
-      say(t.cannotRead(folderName(path), String(e)), true);
+      say(t.cannotRead(folderName(path), String(e)), "error");
+      return false;
     } finally {
       reading.delete(path);
       busy -= 1;
@@ -94,7 +104,7 @@
       say(t.removed(folderName(path)));
       runSearch();
     } catch (e) {
-      say(t.cannotRemove(String(e)), true);
+      say(t.cannotRemove(String(e)), "error");
     } finally {
       removing.delete(path);
     }
@@ -118,7 +128,7 @@
     try {
       known = await api.defaultFolders();
     } catch (e) {
-      say(t.actionFailed(String(e)), true);
+      say(t.actionFailed(String(e)), "error");
       return;
     }
     setKnownFolders(known);
@@ -152,11 +162,13 @@
     try {
       await action(path);
     } catch (e) {
-      say(t.actionFailed(String(e)), true);
+      say(t.actionFailed(String(e)), "error");
     }
   }
 
   // A slower answer to an earlier query must not replace the results of a later one.
+  let shownQuery = "";
+
   async function runSearch() {
     const text = query.trim();
     const mine = ++searchNumber;
@@ -172,10 +184,13 @@
       if (mine !== searchNumber) return;
       hits = found.hits;
       partial = !found.every_word && found.hits.length > 0;
-      showAll = false;
+      // A new query collapses the list; the same query run again, after a folder is read, keeps
+      // what the user expanded.
+      if (text !== shownQuery) showAll = false;
+      shownQuery = text;
       noResults = found.hits.length ? "" : t.noResults(text);
     } catch (e) {
-      if (mine === searchNumber) say(t.searchFailed(String(e)), true);
+      if (mine === searchNumber) say(t.searchFailed(String(e)), "error");
     }
   }
 
@@ -213,8 +228,12 @@
     field.focus();
   }
 
+  // If the macOS menu could not be built, Command-comma still opens the folders.
+  let menuReady = false;
+
   function onWindowKeydown(event: KeyboardEvent) {
-    if (!onMac && event.ctrlKey && event.key === ",") panelOpen = true;
+    if (event.key !== ",") return;
+    if (onMac ? event.metaKey && !menuReady : event.ctrlKey) panelOpen = true;
   }
 
   // The position is set by the layout alone, so it follows a window resize in the same frame. Only
@@ -267,8 +286,11 @@
   }
 
   onMount(() => {
-    api.onProgress((p) => say(t.updating(p.seen)));
-    if (onMac) setMacMenu(() => (panelOpen = true)).catch(() => {});
+    api.onProgress((p) => say(t.updating(p.seen), "progress"));
+    if (onMac)
+      setMacMenu(() => (panelOpen = true))
+        .then(() => (menuReady = true))
+        .catch(() => {});
     field.focus();
     (async () => {
       try {
@@ -279,17 +301,19 @@
       try {
         await loadFolders();
       } catch (e) {
-        say(t.cannotReadIndex(String(e)), true);
+        say(t.cannotReadIndex(String(e)), "error");
         return;
       }
       if (!folders.length) status.shown = false;
       runSearch();
       // Only changed files are read again. A folder removed since launch is skipped, or reading
       // it would bring it back.
+      let allRead = true;
       for (const path of folders.map((folder) => folder.path)) {
-        if (stillListed(path)) await index(path, false);
+        if (stillListed(path) && !(await index(path, false))) allRead = false;
       }
-      if (folders.length) {
+      // An unreadable folder keeps its error on screen instead of a "ready" that would hide it.
+      if (folders.length && allRead) {
         const total = folders.reduce((sum, folder) => sum + folder.files, 0);
         say(t.indexReady(folders.length, total));
       }
@@ -323,7 +347,9 @@
   {#if askConsent}
     <div class="consent">
       <p>{t.consentText}</p>
-      <button type="button" class="allow" onclick={allowDefaultFolders}>{t.consentAllow}</button>
+      <button type="button" class="allow" disabled={busy > 0} onclick={allowDefaultFolders}
+        >{t.consentAllow}</button
+      >
       <button type="button" onclick={declineDefaultFolders}>{t.consentLater}</button>
     </div>
   {/if}
@@ -356,7 +382,12 @@
 
 <svelte:window onkeydown={onWindowKeydown} onresize={updateFades} />
 
-<p class="status" class:error={status.error} class:hidden={!status.shown} aria-live="polite">
+<p
+  class="status"
+  class:error={status.error}
+  class:hidden={!status.shown}
+  aria-live={status.progress ? "off" : "polite"}
+>
   {status.text}
 </p>
 
@@ -495,6 +526,11 @@
   .consent .allow {
     color: #ffffff;
     background: var(--accent);
+  }
+
+  .consent .allow:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 
   .more {

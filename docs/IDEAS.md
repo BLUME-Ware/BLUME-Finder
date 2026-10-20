@@ -10,8 +10,10 @@ until after 3 November 2026. Nothing here is a commitment.
 - Silencing the font warnings printed by `pdf-extract`.
 - `blume stats` undercounts the text size when a document contains a NUL character (SQLite `LENGTH` stops there), and counts files over the size limit as unreadable while indexing reports them as findable by name only.
 - Memory use of `pdf-extract` on large PDFs: 230 MB peak for a 5 MB, 186-page report; a PDF near the 150 MB limit is untested.
-- UI languages beyond English and French.
+- UI languages beyond English and French: Spanish, German and Italian first, after 0.1.0, each catalog reviewed by a native speaker.
 - The other sources of Spotlight: mail, messages, contacts, calendar, web. Not planned (ADR 0012).
+- Windows: canonical paths start with `\\?\`, which Explorer may reject when opening a file or showing it in its folder; to handle before 0.3.0.
+- Removing a subfolder while its parent folder is being added reports it as removed, although its files stay indexed under the parent.
 - Honoring the Windows hidden attribute; hidden files and folders are recognized by their leading dot only.
 - Linux release. The code is kept portable and tested in CI; only packaging and release are deferred. The Windows release is version 0.3.0 (ADR 0013).
 - macOS signing and notarization, if a free route opens (for example Apple's fee waiver for registered non-profit organizations).

@@ -47,7 +47,9 @@ async fn choose_folder(app: AppHandle) -> Option<String> {
         .file()
         .blocking_pick_folder()
         .and_then(|p| p.into_path().ok())
-        .map(|p| p.to_string_lossy().to_string())
+        // The index stores canonical paths; the interface uses the same form to know which folder
+        // is being read.
+        .map(|p| p.canonicalize().unwrap_or(p).to_string_lossy().to_string())
 }
 
 #[derive(Serialize)]
