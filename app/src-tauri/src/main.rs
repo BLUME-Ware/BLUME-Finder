@@ -3,7 +3,7 @@
 // It opens no network connection and does not modify, move or delete any file.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use blume_finder_core::{Hit, Index, Report, Stats};
+use blume_finder_core::{Found, Index, Report, Stats};
 use serde::Serialize;
 use std::{
     path::{Path, PathBuf},
@@ -103,9 +103,9 @@ async fn forget_folder(app: AppHandle, path: String) -> Result<u64, String> {
 }
 
 #[tauri::command]
-async fn search(app: AppHandle, query: String) -> Result<Vec<Hit>, String> {
+async fn search(app: AppHandle, query: String) -> Result<Found, String> {
     open_index(&app)?
-        .search(&query, 30)
+        .find(&query, 30)
         .map_err(|e| e.to_string())
 }
 

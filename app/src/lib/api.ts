@@ -38,7 +38,12 @@ export const defaultFolders = () => invoke<string[]>("default_folders");
 export const listFolders = () => invoke<Folder[]>("list_folders");
 export const indexFolder = (path: string) => invoke<Report>("index_folder", { path });
 export const forgetFolder = (path: string) => invoke<number>("forget_folder", { path });
-export const search = (query: string) => invoke<Hit[]>("search", { query });
+export interface Found {
+  hits: Hit[];
+  every_word: boolean;
+}
+
+export const search = (query: string) => invoke<Found>("search", { query });
 export const openFile = (path: string) => invoke<void>("open_file", { path });
 export const revealFile = (path: string) => invoke<void>("reveal_file", { path });
 

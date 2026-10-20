@@ -36,7 +36,9 @@ Recorded on 20 October 2026, after testing 0.1.0 on a real computer.
 - **Search by understanding.** A natural phrase such as "electricity bill March" finds the right
   document even when its words differ, which is the purpose of 0.2.0.
 - **No visible search error.** No misleading "no results", no list where the right file is lost:
-  the best results first, and a clear message when nothing matches.
+  the best results first, and a clear message when nothing matches. In 0.1.0, a search whose words
+  are not all found falls back to files containing some of them, with a notice; this is a stopgap,
+  and a real answer to it is expected from search by understanding.
 - **Official-grade experience.** Download, install and launch without detours, and a result in the
   first seconds, at the level of software from a large publisher.
 
