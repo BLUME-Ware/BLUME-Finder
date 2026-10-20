@@ -1,8 +1,20 @@
+import type { KnownFolder } from "./api";
 import { locale, t } from "./i18n";
 
 export function shortName(path: string): string {
   const parts = path.split(/[\\/]/).filter(Boolean);
   return parts.length ? parts[parts.length - 1] : path;
+}
+
+// The system folders keep an English name on disk; the Finder shows them translated.
+let known = new Map<string, string>();
+
+export function setKnownFolders(folders: KnownFolder[]) {
+  known = new Map(folders.map((folder) => [folder.path, t.knownFolders[folder.kind]]));
+}
+
+export function folderName(path: string): string {
+  return known.get(path) ?? shortName(path);
 }
 
 export function size(bytes: number): string {

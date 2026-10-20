@@ -34,7 +34,12 @@ export interface Progress {
 }
 
 export const chooseFolder = () => invoke<string | null>("choose_folder");
-export const defaultFolders = () => invoke<string[]>("default_folders");
+export interface KnownFolder {
+  kind: "documents" | "desktop" | "downloads";
+  path: string;
+}
+
+export const defaultFolders = () => invoke<KnownFolder[]>("default_folders");
 export const listFolders = () => invoke<Folder[]>("list_folders");
 export const indexFolder = (path: string) => invoke<Report>("index_folder", { path });
 export const forgetFolder = (path: string) => invoke<number>("forget_folder", { path });

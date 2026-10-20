@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Folder } from "./lib/api";
-  import { shortName } from "./lib/format";
+  import { folderName } from "./lib/format";
   import { t } from "./lib/i18n";
 
   interface Props {
@@ -18,11 +18,11 @@
   <ul>
     {#each folders as folder (folder.path)}
       <li title={folder.path}>
-        <span class="name">{t.folderChip(shortName(folder.path), folder.files)}</span>
+        <span class="name">{t.folderChip(folderName(folder.path), folder.files)}</span>
         <button
           type="button"
           title={reading.has(folder.path) ? t.folderBeingRead : t.removeFolderTitle}
-          aria-label={t.removeFolderLabel(shortName(folder.path))}
+          aria-label={t.removeFolderLabel(folderName(folder.path))}
           disabled={reading.has(folder.path)}
           onclick={() => onremove(folder.path)}>×</button
         >
