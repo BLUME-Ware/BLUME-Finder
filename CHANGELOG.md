@@ -27,6 +27,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   its subfolders.
 - Opening a result, or showing it in its folder.
 - Read-only access to files, no network access, and hidden and secret files never indexed.
+- A translucent window on macOS, with the desktop blurred behind it.
 - A single-view interface in light and dark themes, in English or French following the system
   language.
 - The `blume` command-line tool, to index and search from a terminal.

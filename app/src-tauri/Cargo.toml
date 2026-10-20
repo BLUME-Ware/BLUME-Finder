@@ -10,7 +10,7 @@ description = "Blume Finder : retrouve un fichier d'après ce qu'il contient. To
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 blume-finder-core = { path = "../../core" }
